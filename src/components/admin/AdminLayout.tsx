@@ -366,7 +366,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 <img 
                   src="/logo.png" 
                   alt="KemetSpirit Logo" 
-                  className="h-9 w-auto object-contain shrink-0 drop-shadow-xs"
+                  className="h-10 w-auto object-contain shrink-0 drop-shadow-xs dark:bg-[#FAF8F5] dark:p-0.5 dark:rounded-lg"
                 />
                 <div className="min-w-0">
                   <span className="text-[10px] uppercase tracking-widest text-[#0A6C74] dark:text-[#2DD4BF] font-bold block">

@@ -142,7 +142,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
               <img 
                 src="/logo.png" 
                 alt="KemetSpirit Logo" 
-                className="h-16 w-auto object-contain drop-shadow-sm"
+                className="h-20 w-auto object-contain drop-shadow-sm dark:bg-[#FAF8F5] dark:p-1.5 dark:rounded-xl"
               />
             </div>
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#0A6C74] dark:text-[#2DD4BF]">

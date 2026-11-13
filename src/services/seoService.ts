@@ -17,10 +17,10 @@ export interface SeoMetadata {
   schemaJsonLd?: Record<string, unknown>;
 }
 
-const DEFAULT_TITLE = 'Awesome Adventure Tours | Boat Trips, Island Tours & Safaris';
+const DEFAULT_TITLE = 'KemetSpirit | Boat Trips, Island Tours & Safaris';
 const DEFAULT_DESCRIPTION = 'Discover boat trips, island experiences, snorkeling, diving and desert safaris across Egypt. Compare tour details and book with confidence.';
-const DEFAULT_IMAGE = 'https://awesomeadventure.tours/logo.webp';
-const SITE_NAME = 'Awesome Adventure Tours';
+const DEFAULT_IMAGE = 'https://kemetspirit.com/logo.webp';
+const SITE_NAME = 'KemetSpirit';
 
 /**
  * Updates or creates a <meta> element in the document head
@@ -111,8 +111,8 @@ export async function getStoredSeoMetadata(
     if (data.meta_description) metadata.description = data.meta_description;
     if (data.canonical_url) {
       try {
-        const candidate = new URL(data.canonical_url, 'https://awesomeadventure.tours');
-        if (candidate.protocol === 'https:' && candidate.hostname.toLowerCase() === 'awesomeadventure.tours') {
+        const candidate = new URL(data.canonical_url, 'https://kemetspirit.com');
+        if (candidate.protocol === 'https:' && candidate.hostname.toLowerCase() === 'kemetspirit.com') {
           metadata.canonicalUrl = candidate.toString();
         }
       } catch {
@@ -168,8 +168,8 @@ export const seoService = {
 
     // 4. Canonical URL
     const hostname = window.location.hostname.toLowerCase();
-    const canonicalOrigin = hostname === 'awesomeadventure.tours' || hostname === 'www.awesomeadventure.tours'
-      ? 'https://awesomeadventure.tours'
+    const canonicalOrigin = hostname === 'kemetspirit.com' || hostname === 'www.kemetspirit.com'
+      ? 'https://kemetspirit.com'
       : window.location.origin;
     const canonical = meta.canonicalUrl || `${canonicalOrigin}${window.location.pathname}`;
     setCanonicalUrl(canonical);
@@ -207,7 +207,7 @@ export const seoService = {
    * Generates tailored SEO metadata for an Excursion Detail Page
    */
   generateTourSeo(tour: Tour): SeoMetadata {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://awesomeadventure.tours';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kemetspirit.com';
     const tourUrl = `${origin}/excursions/${tour.slug}`;
     const formattedPrice = `€${tour.priceEur}`;
 
@@ -282,12 +282,12 @@ export const seoService = {
    * Generates tailored SEO metadata for Category & Filter Views
    */
   generateCategorySeo(categoryName: string, tourCount: number, matchingTours: Tour[] = []): SeoMetadata {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://awesomeadventure.tours';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kemetspirit.com';
     const isAll = categoryName === 'All' || !categoryName;
 
     const title = isAll
-      ? 'Boat Trips & Island Tours in Egypt | Awesome Adventure Tours'
-      : `${categoryName} Tours in Egypt | Awesome Adventure Tours`;
+      ? 'Boat Trips & Island Tours in Egypt | KemetSpirit'
+      : `${categoryName} Tours in Egypt | KemetSpirit`;
 
     const description = isAll
       ? `Compare ${tourCount} Red Sea boat trips, island cruises, snorkeling reefs, and desert safaris. Review pickup details, inclusions, and cancellation terms for each excursion.`
@@ -296,7 +296,7 @@ export const seoService = {
     const schemaJsonLd: Record<string, unknown> = {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      name: isAll ? 'Awesome Adventure Tours Experiences' : `${categoryName} Tours | Awesome Adventure Tours`,
+      name: isAll ? 'KemetSpirit Experiences' : `${categoryName} Tours | KemetSpirit`,
       description,
       numberOfItems: tourCount,
       itemListElement: matchingTours.slice(0, 10).map((t, idx) => ({
@@ -331,7 +331,7 @@ export const seoService = {
    * Generates tailored SEO metadata for Destination Views
    */
   generateDestinationSeo(destinationName: string, tourCount: number): SeoMetadata {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://awesomeadventure.tours';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kemetspirit.com';
     const title = `${destinationName} Excursions & Boat Tours | Red Sea Direct Booking`;
     const description = `Discover ${tourCount} excursions departing directly from ${destinationName}. Island cruises, coral reef snorkeling, PADI diving, and desert quad safaris.`;
 
@@ -350,13 +350,13 @@ export const seoService = {
    * Default Homepage SEO & Organization Schema
    */
   generateDefaultSeo(): SeoMetadata {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://awesomeadventure.tours';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kemetspirit.com';
 
     const schemaJsonLd: Record<string, unknown> = {
       '@context': 'https://schema.org',
       '@type': 'TravelAgency',
       name: SITE_NAME,
-      alternateName: 'Awesome Adventure Tours',
+      alternateName: 'KemetSpirit',
       description: DEFAULT_DESCRIPTION,
       url: origin,
       telephone: '+201515212741',

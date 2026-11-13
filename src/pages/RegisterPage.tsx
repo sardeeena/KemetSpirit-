@@ -314,7 +314,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ redirectUrl, onNavig
               <img 
                 src="/logo.png" 
                 alt="KemetSpirit Logo" 
-                className="h-16 w-auto object-contain drop-shadow-sm"
+                className="h-20 w-auto object-contain drop-shadow-sm"
               />
             </div>
             <h1 className="font-display text-2xl font-bold text-[#0E1B2A]">Create Voyager Account</h1>

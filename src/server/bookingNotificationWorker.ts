@@ -291,8 +291,8 @@ async function processMessage(
     body: JSON.stringify({
       from: `${fromName} <${fromEmail}>`,
       to: [recipient],
-      reply_to: process.env.RESEND_REPLY_TO?.trim() || 'reservation@awesomeadventure.tours',
-      bcc: [process.env.BOOKING_NOTIFICATION_EMAIL?.trim() || 'reservation@awesomeadventure.tours'],
+      reply_to: process.env.RESEND_REPLY_TO?.trim() || 'reservation@kemetspirit.com',
+      bcc: [process.env.BOOKING_NOTIFICATION_EMAIL?.trim() || 'reservation@kemetspirit.com'],
       subject,
       text: content,
       html: renderBrandedEmailHtml({ heading: subject, preheader: subject, bodyText: content }),
@@ -345,7 +345,7 @@ export function startBookingNotificationWorker(client: SupabaseClient): () => vo
 
   const apiKey = process.env.RESEND_API_KEY?.trim() || '';
   const fromEmail = normalizeSenderEmail(process.env.RESEND_FROM_EMAIL || '');
-  const fromName = process.env.RESEND_FROM_NAME?.trim() || 'Awesome Adventure Tours';
+  const fromName = process.env.RESEND_FROM_NAME?.trim() || 'KemetSpirit';
 
   if (!apiKey || !isValidEmail(fromEmail)) {
     console.warn('[Booking Notification Worker] Not started: email configuration is incomplete.', {

@@ -104,11 +104,11 @@ export const Footer: React.FC<FooterProps> = ({
               <img 
                 src="/logo.png" 
                 alt="KemetSpirit Logo" 
-                width="160"
-                height="160"
+                width="80"
+                height="98"
                 loading="lazy"
                 decoding="async"
-                className="h-16 w-16 object-contain shrink-0 drop-shadow-xs"
+                className="h-20 w-auto object-contain shrink-0 drop-shadow-xs dark:bg-[#FAF8F5] dark:p-1.5 dark:rounded-xl"
               />
             </div>
             <p className="text-xs text-stone-600 dark:text-slate-400 leading-relaxed mb-5 max-w-sm">

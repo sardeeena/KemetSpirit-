@@ -203,11 +203,11 @@ export const Header: React.FC<HeaderProps> = ({
             <img 
               src="/logo.png" 
               alt="KemetSpirit" 
-              width="200"
-              height="48"
+              width="44"
+              height="54"
               fetchPriority="high"
               decoding="async"
-              className="h-9 sm:h-10 md:h-11 w-auto object-contain drop-shadow-xs group-hover:scale-105 transition-transform duration-300"
+              className="h-10 sm:h-11 md:h-12 w-auto object-contain drop-shadow-xs dark:bg-[#FAF8F5] dark:p-1 dark:rounded-lg group-hover:scale-105 transition-transform duration-300"
             />
           </a>
 

@@ -6,11 +6,11 @@ import { APP_CONFIG } from '../config/appConfig';
  * Global Site-Wide SEO Constants & Branding Identifiers
  */
 export const SEO_DEFAULTS = {
-  SITE_NAME: 'Awesome Adventure Tours',
-  DEFAULT_TITLE: 'Awesome Adventure Tours | Boat Trips, Island Tours & Safaris',
+  SITE_NAME: 'KemetSpirit',
+  DEFAULT_TITLE: 'KemetSpirit | Boat Trips, Island Tours & Safaris',
   DEFAULT_DESCRIPTION:
     'Discover boat trips, island experiences, snorkeling, diving and desert safaris across Egypt. Compare tour details and book with confidence.',
-  DEFAULT_OG_IMAGE: 'https://awesomeadventure.tours/logo.webp',
+  DEFAULT_OG_IMAGE: 'https://kemetspirit.com/logo.webp',
   DEFAULT_LOCALE: 'en_US',
   KEYWORDS: [
     'Egypt boat trips',
@@ -58,12 +58,12 @@ export const HOMEPAGE_FAQS = [
 export function getAppOrigin(): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
     const hostname = window.location.hostname.toLowerCase();
-    if (hostname === 'awesomeadventure.tours' || hostname === 'www.awesomeadventure.tours') {
-      return 'https://awesomeadventure.tours';
+    if (hostname === 'kemetspirit.com' || hostname === 'www.kemetspirit.com') {
+      return 'https://kemetspirit.com';
     }
     return window.location.origin;
   }
-  return 'https://awesomeadventure.tours';
+  return 'https://kemetspirit.com';
 }
 
 /**
@@ -128,7 +128,7 @@ export function generateTourJsonLd(tour: Tour, origin = getAppOrigin()): Record<
       name: tour.title,
       image: images,
       description: tour.shortDescription,
-      sku: `AAT-${tour.id}`,
+      sku: `KS-${tour.id}`,
       offers: {
         '@type': 'Offer',
         url: tourUrl,
@@ -251,7 +251,7 @@ export function generateDestinationJsonLd(
  */
 export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> = {
   '/': (origin) => ({
-    title: 'Awesome Adventure Tours | Boat Trips, Island Tours & Safaris',
+    title: 'KemetSpirit | Boat Trips, Island Tours & Safaris',
     description:
       'Explore Red Sea boat trips to Orange Bay, Giftun Island, Ras Mohammed, and desert safaris. Compare tour details, pickup arrangements, inclusions, and cancellation terms.',
     keywords: SEO_DEFAULTS.KEYWORDS,
@@ -264,7 +264,7 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/excursions': (origin) => ({
-    title: 'Boat Trips & Island Tours in Egypt | Awesome Adventure Tours',
+    title: 'Boat Trips & Island Tours in Egypt | KemetSpirit',
     description:
       'Browse boat trips, island experiences, snorkeling activities and desert adventures across Egypt. Compare durations, inclusions and prices.',
     keywords: [
@@ -289,7 +289,7 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/experiences': (origin) => ({
-    title: 'Boat Trips, Snorkeling & Desert Safaris | Awesome Adventure Tours',
+    title: 'Boat Trips, Snorkeling & Desert Safaris | KemetSpirit',
     description:
       'Discover boat trips, island escapes, snorkeling, diving and desert adventures across Egypt’s Red Sea coast.',
     keywords: [
@@ -314,11 +314,11 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/support': (origin) => ({
-    title: 'Customer Support & Tickets | Awesome Adventure Tours',
+    title: 'Customer Support & Tickets | KemetSpirit',
     description:
-      'Sign in to create a support request and securely follow your conversations with the Awesome Adventure Tours team.',
+      'Sign in to create a support request and securely follow your conversations with the KemetSpirit team.',
     keywords: [
-      'Awesome Adventure Tours support',
+      'KemetSpirit support',
       'Tour assistance in Egypt',
       'booking support',
       'customer service Hurghada',
@@ -326,7 +326,7 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
     canonicalUrl: `${origin}/support`,
     ogType: 'website',
     ogImage: SEO_DEFAULTS.DEFAULT_OG_IMAGE,
-    ogImageAlt: 'Awesome Adventure Tours customer support',
+    ogImageAlt: 'KemetSpirit customer support',
     twitterCard: 'summary',
     robotsIndex: false,
     robotsFollow: false,
@@ -340,7 +340,7 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/my-booking': (origin) => ({
-    title: 'Manage Your Booking & Download Voucher | Awesome Adventure Tours',
+    title: 'Manage Your Booking & Download Voucher | KemetSpirit',
     description:
       'Retrieve your reservation details and voucher using the booking reference provided at confirmation.',
     canonicalUrl: `${origin}/my-booking`,
@@ -350,7 +350,7 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/login': (origin) => ({
-    title: 'Sign In | Awesome Adventure Tours Guest Portal',
+    title: 'Sign In | KemetSpirit Guest Portal',
     description:
       'Sign in to view your excursion reservations and saved wishlist.',
     canonicalUrl: `${origin}/login`,
@@ -360,7 +360,7 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/register': (origin) => ({
-    title: 'Create an Account | Awesome Adventure Tours',
+    title: 'Create an Account | KemetSpirit',
     description:
       'Create a traveler account to manage your excursion bookings and saved wishlist.',
     canonicalUrl: `${origin}/register`,
@@ -416,7 +416,7 @@ export function getPageSeo(
       (tour) => tour.destination.toLowerCase() === destination.name.toLowerCase()
     );
     return {
-      title: destination.seoTitle || `${destination.name} Excursions & Activities | Awesome Adventure Tours`,
+      title: destination.seoTitle || `${destination.name} Excursions & Activities | KemetSpirit`,
       description: destination.seoDescription || destination.description,
       keywords: [destination.name, 'Egypt tours and activities', 'activities', 'boat trips'],
       canonicalUrl: destinationUrl,

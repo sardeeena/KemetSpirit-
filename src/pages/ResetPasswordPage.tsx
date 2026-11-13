@@ -277,7 +277,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onNavigate
               <img
                 src="/logo.png"
                 alt="KemetSpirit Logo"
-                className="h-16 w-auto object-contain drop-shadow-sm"
+                className="h-20 w-auto object-contain drop-shadow-sm"
               />
             </div>
 

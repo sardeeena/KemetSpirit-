@@ -1,5 +1,5 @@
 /**
- * Standardized API Request and Response Types for Awesome Adventure Tours
+ * Standardized API Request and Response Types for KemetSpirit
  */
 
 import { Booking, BookingStatus, PaymentStatus } from './booking';

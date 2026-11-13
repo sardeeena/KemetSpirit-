@@ -25,14 +25,14 @@ const LOCAL_PROVIDERS_KEY = 'rse_fin_providers';
 export const COMPANY_DETAILS: CompanyBillingDetails = {
   // Brand identity only. Legal entity, tax, address, phone and bank details must be
   // entered by an authorized administrator before issuing legally complete invoices.
-  name: 'Awesome Adventure Tours',
+  name: 'KemetSpirit',
   tagline: 'Tours and experiences',
   address: '',
   city: '',
   country: '',
   phone: '',
   email: '',
-  website: 'https://awesomeadventure.tours',
+  website: 'https://kemetspirit.com',
   taxRegistrationNumber: '',
   commercialRegistryNumber: '',
   bankName: '',

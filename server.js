@@ -1155,7 +1155,7 @@ async function processMessage(client, message, apiKey, fromEmail, fromName) {
     if (error) throw error;
     logRow = inserted;
   }
-  const idempotencyKey = `kemetspirit-booking-${eventId}-email`;
+  const idempotencyKey = `awesome-adventure-booking-${eventId}-email`;
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

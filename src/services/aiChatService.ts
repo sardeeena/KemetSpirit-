@@ -140,7 +140,7 @@ Which excursion would you like to reserve?`;
   } else {
     // General overview
     tours = ALL_TOURS.slice(0, 3);
-    content = `Welcome to Awesome Adventure Tours! I am Captain Farouk, your local AI Concierge.
+    content = `Welcome to KemetSpirit! I am Captain Farouk, your local AI Concierge.
 
 Here are 3 of our most celebrated trips this season:
 1. **Orange Bay Island & Snorkeling** (€35) – The Red Sea's Caribbean sandbar, shallow turquoise water, great for relaxing and families.
