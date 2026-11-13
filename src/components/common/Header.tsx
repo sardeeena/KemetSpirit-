@@ -18,6 +18,12 @@ import {
   HelpCircle,
   Sun,
   Moon,
+  Compass,
+  MapPin,
+  Sparkles,
+  BookOpen,
+  ChevronRight,
+  Headphones,
 } from 'lucide-react';
 import { CurrencyConfig } from '../../types';
 import { recordVisitorEvent } from '../../services/visitorAnalyticsService';
@@ -131,8 +137,18 @@ export const Header: React.FC<HeaderProps> = ({
         setUserDropdownOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setUserDropdownOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleNavClick = (sectionId: string) => {
@@ -497,244 +513,396 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#0A192F] dark:text-slate-100 hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] rounded-lg border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
-              aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              className={`inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl border text-xs font-semibold transition-all duration-200 cursor-pointer shrink-0 ${
+                mobileMenuOpen
+                  ? 'bg-[#0F4C81] text-white border-[#0F4C81] dark:bg-sky-500 dark:text-[#07111C] dark:border-sky-500 shadow-xs'
+                  : 'bg-white dark:bg-[#0E1C2E] text-[#0A192F] dark:text-slate-100 border-[#DCE2EA] dark:border-[#1E344E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 hover:bg-[#EEF1F5] dark:hover:bg-[#14263D]'
+              }`}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? (
+                <X className="w-4 h-4 shrink-0" />
+              ) : (
+                <Menu className="w-4 h-4 shrink-0" />
+              )}
+              <span className="hidden sm:inline whitespace-nowrap">
+                {mobileMenuOpen ? 'Close' : 'Menu'}
+              </span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Redesigned Collapsible Header Navigation Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="xl:hidden border-b border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] px-5 py-5 shadow-lg overflow-hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="xl:hidden border-b border-[#DCE2EA] dark:border-[#1E344E] bg-[#F6F7F9]/98 dark:bg-[#07111C]/98 backdrop-blur-lg shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto"
           >
-            <nav className="flex flex-col space-y-3 text-sm font-medium text-[#0A192F] dark:text-slate-100">
-              {user ? (
-                <div className="p-3.5 bg-[#F6F7F9] dark:bg-[#07111C] rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#0F4C81] text-white flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
-                      {user.avatarUrl ? (
-                        <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span>{user.fullName.charAt(0).toUpperCase()}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm text-[#0A192F] dark:text-white truncate">{user.fullName}</p>
-                      <p className="text-xs text-[#5C6F84] dark:text-slate-400 truncate">{user.email}</p>
-                    </div>
+            <nav
+              aria-label="Header Menu Navigation"
+              className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5 items-start">
+                {/* Column 1: Explore & Directory Cards */}
+                <div className="md:col-span-7 space-y-2.5">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#B58428] dark:text-[#E3B34C]">
+                      Explore KemetSpirit
+                    </span>
+                    <span className="text-[11px] text-[#5C6F84] dark:text-slate-400">
+                      Direct Hurghada &amp; Red Sea Fleet
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-[#DCE2EA] dark:border-[#1E344E]">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={handleExcursionsClick}
+                      className="group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#0F4C81]/25 dark:border-sky-400/25 bg-[#EBF3FA]/60 dark:bg-[#0E1C2E] hover:border-[#0F4C81] dark:hover:border-sky-400 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C] flex items-center justify-center shrink-0">
+                          <Compass className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#0A192F] dark:text-white truncate">
+                            {t('nav.allExcursions')}
+                          </p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                            Browse full Red Sea fleet
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#0F4C81] dark:text-sky-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('destinations-section')}
+                      className="group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] text-[#0F4C81] dark:text-sky-400 flex items-center justify-center shrink-0">
+                          <MapPin className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-[#0A192F] dark:text-white truncate">
+                            {t('nav.destinations')}
+                          </p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                            {t('mobile.destinationsDetailed')}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#5C6F84] dark:text-slate-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('categories-section')}
+                      className="group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] text-[#B58428] dark:text-[#E3B34C] flex items-center justify-center shrink-0">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-[#0A192F] dark:text-white truncate">
+                            {t('nav.experiences')}
+                          </p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                            {t('mobile.categories')}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#5C6F84] dark:text-slate-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+
+                    <a
+                      href="/blog"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] text-[#0F4C81] dark:text-sky-400 flex items-center justify-center shrink-0">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-[#0A192F] dark:text-white truncate">
+                            Journal &amp; Field Notes
+                          </p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                            Reef &amp; Egypt travel guides
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#5C6F84] dark:text-slate-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </a>
+
+                    <a
+                      href="/support"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] text-[#0D7A5F] dark:text-emerald-400 flex items-center justify-center shrink-0">
+                          <Headphones className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-[#0A192F] dark:text-white truncate">
+                            Customer Support
+                          </p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                            Helpdesk &amp; pickup questions
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#5C6F84] dark:text-slate-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </a>
+
                     <button
                       type="button"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        if (onNavigateAccount) onNavigateAccount();
+                        if (onOpenWishlist) onOpenWishlist();
                       }}
-                      className="flex-1 py-2 px-2.5 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-semibold text-[#0A192F] dark:text-white flex items-center justify-center gap-1.5"
+                      className="group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:border-rose-300 dark:hover:border-rose-500/40 transition-colors text-left cursor-pointer"
                     >
-                      <User className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
-                      <span>Profile</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-800/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                          <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'fill-current' : ''}`} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-[#0A192F] dark:text-white truncate">
+                            Saved Excursions
+                          </p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                            Your shortlisted tours
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-mono-num text-xs font-bold px-2 py-0.5 rounded-md bg-[#F6F7F9] dark:bg-[#14263D] text-[#0A192F] dark:text-white shrink-0">
+                        {wishlistCount}
+                      </span>
                     </button>
-                    {isAdmin && onNavigateAdmin && (
+
+                    {comparisonCount > 0 && (
                       <button
                         type="button"
                         onClick={() => {
                           setMobileMenuOpen(false);
-                          onNavigateAdmin();
+                          if (onOpenCompare) onOpenCompare();
                         }}
-                        className="py-2 px-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/40 rounded-lg text-xs font-semibold text-[#B58428] dark:text-[#E3B34C] flex items-center justify-center gap-1"
+                        className="sm:col-span-2 group flex items-center justify-between gap-3 p-3 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 transition-colors text-left cursor-pointer"
                       >
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>Admin</span>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-[#EBF3FA] dark:bg-[#14263D] border border-[#0F4C81]/20 dark:border-sky-400/30 text-[#0F4C81] dark:text-sky-400 flex items-center justify-center shrink-0">
+                            <Scale className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-[#0A192F] dark:text-white truncate">
+                              Compare Excursions
+                            </p>
+                            <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+                              Side-by-side comparison tray
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono-num text-xs font-bold px-2 py-0.5 rounded-md bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C] shrink-0">
+                          {comparisonCount}
+                        </span>
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        signOut();
-                      }}
-                      className="py-2 px-2.5 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
-                    </button>
                   </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      if (onNavigateLogin) onNavigateLogin();
-                    }}
-                    className="py-2.5 px-3 bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-bold text-[#0A192F] dark:text-white flex items-center justify-center gap-1.5"
-                  >
-                    <LogIn className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
-                    <span>Sign In</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      if (onNavigateRegister) onNavigateRegister();
-                    }}
-                    className="py-2.5 px-3 bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C] rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>Register</span>
-                  </button>
-                </div>
-              )}
 
-              {/* Language & Theme bar */}
-              <div className="p-3 bg-[#F6F7F9] dark:bg-[#07111C] rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase font-bold text-[#5C6F84] dark:text-slate-400 tracking-wider flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
-                    {t('mobile.selectLanguage')}
+                {/* Column 2: Account, Preferences & Direct Actions */}
+                <div className="md:col-span-5 space-y-3">
+                  <span className="block px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#5C6F84] dark:text-slate-400">
+                    Voyager Account &amp; Tools
                   </span>
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-[#0E1C2E] text-[#0A192F] dark:text-white border border-[#DCE2EA] dark:border-[#1E344E]"
-                  >
-                    {isDark ? <Sun className="w-3.5 h-3.5 text-[#E3B34C]" /> : <Moon className="w-3.5 h-3.5 text-[#0F4C81]" />}
-                    <span>{isDark ? 'Light' : 'Dark'}</span>
-                  </button>
-                </div>
-                <div className="grid grid-cols-5 gap-1">
-                  {supportedLanguages.map((langItem) => {
-                    const isSelected = language === langItem.code;
-                    return (
+
+                  {/* Account Card */}
+                  {user ? (
+                    <div className="p-3.5 bg-white dark:bg-[#0E1C2E] rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-[#0F4C81] text-white flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
+                          {user.avatarUrl ? (
+                            <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{user.fullName.charAt(0).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs text-[#0A192F] dark:text-white truncate">{user.fullName}</p>
+                          <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 pt-2.5 border-t border-[#DCE2EA] dark:border-[#1E344E]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            if (onNavigateAccount) onNavigateAccount();
+                          }}
+                          className="flex-1 py-1.5 px-2.5 bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-semibold text-[#0A192F] dark:text-white flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <User className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                          <span>Profile</span>
+                        </button>
+                        {isAdmin && onNavigateAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              onNavigateAdmin();
+                            }}
+                            className="py-1.5 px-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/40 rounded-lg text-xs font-semibold text-[#B58428] dark:text-[#E3B34C] flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Admin</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            signOut();
+                          }}
+                          className="py-1.5 px-2.5 bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
                       <button
-                        key={langItem.code}
                         type="button"
                         onClick={() => {
-                          setLanguage(langItem.code as LanguageCode);
-                          void recordVisitorEvent({
-                            event_name: 'language_changed',
-                            page_path: window.location.pathname,
-                            event_data: { language: langItem.code },
-                          });
+                          setMobileMenuOpen(false);
+                          if (onNavigateLogin) onNavigateLogin();
                         }}
-                        className={`py-1.5 px-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
-                          isSelected
-                            ? 'bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C]'
-                            : 'bg-white dark:bg-[#0E1C2E] text-[#2D3F54] dark:text-slate-300 border border-[#DCE2EA] dark:border-[#1E344E]'
-                        }`}
+                        className="py-2.5 px-3 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] hover:border-[#0F4C81]/50 rounded-xl text-xs font-bold text-[#0A192F] dark:text-white flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        <span aria-hidden="true">{langItem.flag}</span>
-                        <span>{langItem.code.toUpperCase()}</span>
+                        <LogIn className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                        <span>Sign In</span>
                       </button>
-                    );
-                  })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          if (onNavigateRegister) onNavigateRegister();
+                        }}
+                        className="py-2.5 px-3 bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:hover:bg-sky-400 text-white dark:text-[#07111C] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Register</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Preferences Box: Language + Theme */}
+                  <div className="p-3 bg-white dark:bg-[#0E1C2E] rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] uppercase font-bold text-[#5C6F84] dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                        {t('mobile.selectLanguage')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#F6F7F9] dark:bg-[#14263D] text-[#0A192F] dark:text-white border border-[#DCE2EA] dark:border-[#1E344E] cursor-pointer"
+                      >
+                        {isDark ? <Sun className="w-3.5 h-3.5 text-[#E3B34C]" /> : <Moon className="w-3.5 h-3.5 text-[#0F4C81]" />}
+                        <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1">
+                      {supportedLanguages.map((langItem) => {
+                        const isSelected = language === langItem.code;
+                        return (
+                          <button
+                            key={langItem.code}
+                            type="button"
+                            onClick={() => {
+                              setLanguage(langItem.code as LanguageCode);
+                              void recordVisitorEvent({
+                                event_name: 'language_changed',
+                                page_path: window.location.pathname,
+                                event_data: { language: langItem.code },
+                              });
+                            }}
+                            className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C]'
+                                : 'bg-[#F6F7F9] dark:bg-[#14263D] text-[#2D3F54] dark:text-slate-300 border border-[#DCE2EA] dark:border-[#1E344E]'
+                            }`}
+                          >
+                            <span aria-hidden="true">{langItem.flag}</span>
+                            <span>{langItem.code.toUpperCase()}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Direct Booking & Concierge Action Cluster */}
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={handleBookingClick}
+                      className="w-full py-2.5 px-4 text-center font-bold text-xs sm:text-sm bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:hover:bg-sky-400 text-white dark:text-[#07111C] rounded-xl transition-colors cursor-pointer"
+                    >
+                      {t('nav.bookExcursion')}
+                    </button>
+
+                    <div className={`grid gap-2 ${onOpenHelpInquiry ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          if (onOpenMyBooking) onOpenMyBooking();
+                        }}
+                        className="py-2 px-3 text-center font-semibold text-xs bg-white dark:bg-[#0E1C2E] text-[#0A192F] dark:text-white rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] hover:border-[#0F4C81]/50 flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <CalendarCheck className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400 shrink-0" />
+                        <span className="truncate">{t('nav.findMyBooking')}</span>
+                      </button>
+
+                      {onOpenHelpInquiry && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            onOpenHelpInquiry();
+                          }}
+                          className="py-2 px-3 text-center font-semibold text-xs bg-white dark:bg-[#0E1C2E] text-[#0F4C81] dark:text-sky-400 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] hover:border-[#0F4C81]/50 flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">Concierge Help</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <a
+                      href="https://wa.me/201515212741"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 px-4 text-center font-semibold text-xs bg-[#0D7A5F] hover:bg-[#09624B] text-white rounded-xl flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4 shrink-0" />
+                      <span>{t('mobile.contactWhatsApp')}</span>
+                    </a>
+                  </div>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 divide-y divide-[#DCE2EA] dark:divide-[#1E344E]">
-                <button
-                  type="button"
-                  onClick={handleExcursionsClick}
-                  className="text-left py-2.5 px-1 text-[#0F4C81] dark:text-sky-400 font-semibold flex items-center justify-between"
-                >
-                  <span>{t('nav.allExcursions')}</span>
-                  <Search className="w-4 h-4" />
-                </button>
-                <button type="button" onClick={() => handleNavClick('destinations-section')} className="text-left py-2.5 px-1">
-                  {t('mobile.destinationsDetailed')}
-                </button>
-                <button type="button" onClick={() => handleNavClick('categories-section')} className="text-left py-2.5 px-1">
-                  {t('mobile.categories')}
-                </button>
-                <a href="/blog" onClick={() => setMobileMenuOpen(false)} className="text-left py-2.5 px-1 font-semibold text-[#0F4C81] dark:text-sky-400">
-                  Journal &amp; Field Notes
-                </a>
-                <a href="/support" onClick={() => setMobileMenuOpen(false)} className="text-left py-2.5 px-1 font-semibold">
-                  Customer Support
-                </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenWishlist) onOpenWishlist();
-                  }}
-                  className="text-left py-2.5 px-1 text-rose-600 dark:text-rose-400 font-semibold flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Heart className="w-4 h-4 fill-current" />
-                    <span>Saved Excursions</span>
-                  </span>
-                  <span className="font-mono-num text-xs font-bold">{wishlistCount}</span>
-                </button>
-                {comparisonCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      if (onOpenCompare) onOpenCompare();
-                    }}
-                    className="text-left py-2.5 px-1 text-[#0F4C81] dark:text-sky-400 font-semibold flex items-center justify-between"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Scale className="w-4 h-4" />
-                      <span>Compare Excursions</span>
-                    </span>
-                    <span className="font-mono-num text-xs font-bold">{comparisonCount}</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="pt-2 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleBookingClick}
-                  className="w-full py-2.5 px-4 text-center font-bold text-sm bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C] rounded-lg"
-                >
-                  {t('nav.bookExcursion')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenMyBooking) onOpenMyBooking();
-                  }}
-                  className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-[#F6F7F9] dark:bg-[#14263D] text-[#0A192F] dark:text-white rounded-lg border border-[#DCE2EA] dark:border-[#1E344E]"
-                >
-                  {t('mobile.findBookingSubtitle')}
-                </button>
-                {onOpenHelpInquiry && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onOpenHelpInquiry();
-                    }}
-                    className="w-full py-2.5 px-4 text-center font-semibold text-sm text-[#0F4C81] dark:text-sky-400 border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg flex items-center justify-center gap-2"
-                  >
-                    <HelpCircle className="w-4 h-4" />
-                    <span>Concierge &amp; Custom Help</span>
-                  </button>
-                )}
-                <a
-                  href="https://wa.me/201515212741"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-[#0D7A5F] hover:bg-[#09624B] text-white rounded-lg flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{t('mobile.contactWhatsApp')}</span>
-                </a>
               </div>
             </nav>
           </motion.div>
