@@ -1,0 +1,277 @@
+/**
+ * Automated Verification: Strict Communication Provider Credential Validation
+ * Tests that missing or incomplete provider credentials throw descriptive errors
+ * before attempting message dispatch.
+ */
+
+import {
+  validateEmailProviderCredentials,
+  validateWhatsAppProviderCredentials,
+  validateProviderCredentials,
+  sendEmailMessage,
+  sendWhatsAppMessage,
+  ProviderConfigurationError,
+  saveProviderConfig,
+  getProviderConfig,
+  DEFAULT_PROVIDER_CONFIG,
+} from '../src/services/communicationService';
+
+let passed = 0;
+let failed = 0;
+
+function assert(condition: boolean, msg: string) {
+  if (condition) {
+    console.log(`✓ PASS: ${msg}`);
+    passed++;
+  } else {
+    console.error(`✗ FAIL: ${msg}`);
+    failed++;
+  }
+}
+
+async function runTests() {
+  assert(DEFAULT_PROVIDER_CONFIG.email.fromEmail === '', 'Default email sender address is blank until configured by the server');
+  assert(DEFAULT_PROVIDER_CONFIG.email.fromName === 'KemetSpirit', 'Default email sender name matches the site brand');
+  console.log('================================================================');
+  console.log('  Communication Provider Credential Validation Test Suite');
+  console.log('================================================================\n');
+
+  // Test 1: Email provider set to 'none' throws ProviderConfigurationError
+  console.log('Test 1: Unconfigured Email Provider Rejection');
+  let err1: any = null;
+  try {
+    validateEmailProviderCredentials({
+      provider: 'none',
+      isConfigured: false,
+    });
+  } catch (err: any) {
+    err1 = err;
+  }
+  assert(err1 instanceof ProviderConfigurationError, 'Throws ProviderConfigurationError when email provider is "none"');
+  assert(err1?.message.includes('Email provider is not configured'), `Error message is descriptive: "${err1?.message}"`);
+
+  // Test 2: Email provider with missing apiKey
+  console.log('\nTest 2: Email Provider Missing API Key');
+  let err2: any = null;
+  try {
+    validateEmailProviderCredentials({
+      provider: 'resend',
+      apiKey: '',
+      fromEmail: 'info@retired-voyages.example.test',
+      isConfigured: false,
+    });
+  } catch (err: any) {
+    err2 = err;
+  }
+  assert(err2 instanceof ProviderConfigurationError, 'Throws ProviderConfigurationError when apiKey is missing');
+  assert(err2?.message.includes('apiKey'), `Error message highlights missing apiKey: "${err2?.message}"`);
+
+  // Test 3: Email provider with invalid fromEmail
+  console.log('\nTest 3: Email Provider Missing/Invalid From Address');
+  let err3: any = null;
+  try {
+    validateEmailProviderCredentials({
+      provider: 'sendgrid',
+      apiKey: 'SG.1234567890abcdef',
+      fromEmail: 'invalid-email-address',
+      isConfigured: false,
+    });
+  } catch (err: any) {
+    err3 = err;
+  }
+  assert(err3 instanceof ProviderConfigurationError, 'Throws ProviderConfigurationError when fromEmail is invalid');
+  assert(err3?.message.includes('fromEmail'), `Error message highlights invalid fromEmail: "${err3?.message}"`);
+
+  // Test 4: WhatsApp provider set to 'none'
+  console.log('\nTest 4: Unconfigured WhatsApp Provider Rejection');
+  let err4: any = null;
+  try {
+    validateWhatsAppProviderCredentials({
+      provider: 'none',
+      isConfigured: false,
+    });
+  } catch (err: any) {
+    err4 = err;
+  }
+  assert(err4 instanceof ProviderConfigurationError, 'Throws ProviderConfigurationError when WhatsApp provider is "none"');
+  assert(err4?.message.includes('WhatsApp provider is not configured'), `Error message is descriptive: "${err4?.message}"`);
+
+  // Test 5: Meta Cloud API missing phoneNumberId
+  console.log('\nTest 5: Meta Cloud API Missing phoneNumberId');
+  let err5: any = null;
+  try {
+    validateWhatsAppProviderCredentials({
+      provider: 'meta_cloud',
+      apiKey: 'EAABwz1234567890abcdef',
+      phoneNumberId: '',
+      isConfigured: false,
+    });
+  } catch (err: any) {
+    err5 = err;
+  }
+  assert(err5 instanceof ProviderConfigurationError, 'Throws ProviderConfigurationError when Meta Cloud phoneNumberId is missing');
+  assert(err5?.message.includes('phoneNumberId'), `Error message highlights missing phoneNumberId: "${err5?.message}"`);
+
+  // Test 6: Twilio missing fromNumber
+  console.log('\nTest 6: Twilio Missing fromNumber');
+  let err6: any = null;
+  try {
+    validateWhatsAppProviderCredentials({
+      provider: 'twilio',
+      apiKey: 'AC1234567890abcdef12345',
+      fromNumber: '',
+      isConfigured: false,
+    });
+  } catch (err: any) {
+    err6 = err;
+  }
+  assert(err6 instanceof ProviderConfigurationError, 'Throws ProviderConfigurationError when Twilio fromNumber is missing');
+  assert(err6?.message.includes('fromNumber'), `Error message highlights missing fromNumber: "${err6?.message}"`);
+
+  // Test 7: Universal validateProviderCredentials helper
+  console.log('\nTest 7: Universal validateProviderCredentials Helper');
+  let err7: any = null;
+  try {
+    validateProviderCredentials('Email', {
+      ...DEFAULT_PROVIDER_CONFIG,
+      email: { provider: 'none', isConfigured: false },
+    });
+  } catch (err: any) {
+    err7 = err;
+  }
+  assert(err7 instanceof ProviderConfigurationError, 'Universal validator dispatches to channel validator');
+
+  // Test 8: sendEmailMessage throws descriptive error before dispatch when unconfigured
+  console.log('\nTest 8: sendEmailMessage Throws On Missing Credentials');
+  saveProviderConfig(DEFAULT_PROVIDER_CONFIG);
+  let err8: any = null;
+  try {
+    await sendEmailMessage({
+      recipientEmail: 'guest@example.com',
+      customerName: 'Guest Tester',
+      subject: 'Test Subject',
+      content: 'Test message body',
+    });
+  } catch (err: any) {
+    err8 = err;
+  }
+  assert(err8 instanceof ProviderConfigurationError, 'sendEmailMessage strictly throws ProviderConfigurationError');
+  assert(err8?.message.includes('Email provider is not configured'), `sendEmailMessage threw descriptive error: "${err8?.message}"`);
+
+  // Test 9: sendWhatsAppMessage throws descriptive error before dispatch when unconfigured
+  console.log('\nTest 9: sendWhatsAppMessage Throws On Missing Credentials');
+  let err9: any = null;
+  try {
+    await sendWhatsAppMessage({
+      recipientPhone: '+201004567890',
+      customerName: 'Guest Tester',
+      content: 'Test WhatsApp message',
+    });
+  } catch (err: any) {
+    err9 = err;
+  }
+  assert(err9 instanceof ProviderConfigurationError, 'sendWhatsAppMessage strictly throws ProviderConfigurationError');
+  assert(err9?.message.includes('WhatsApp provider is not configured'), `sendWhatsAppMessage threw descriptive error: "${err9?.message}"`);
+
+  // Test 10: Valid credentials pass without throwing
+  console.log('\nTest 10: Valid Credentials Pass Validation');
+  let passEmail = false;
+  try {
+    validateEmailProviderCredentials({
+      provider: 'resend',
+      apiKey: 're_1234567890abcdef',
+      fromEmail: 'concierge@retired-voyages.example.test',
+      isConfigured: true,
+    });
+    passEmail = true;
+  } catch {
+    passEmail = false;
+  }
+  assert(passEmail, 'Valid Email provider configuration passes validation without error');
+
+  let passWhatsApp = false;
+  try {
+    validateWhatsAppProviderCredentials({
+      provider: 'meta_cloud',
+      apiKey: 'EAABwz1234567890abcdef',
+      phoneNumberId: '1029384756',
+      isConfigured: true,
+    });
+    passWhatsApp = true;
+  } catch {
+    passWhatsApp = false;
+  }
+  // Test 11: Browser configuration never persists email or WhatsApp API secrets
+  console.log('\\nTest 11: Provider Secrets Are Never Stored In Browser Configuration');
+  saveProviderConfig({
+    email: {
+      provider: 'resend',
+      apiKey: 're_test_secret_must_not_persist',
+      fromEmail: 'concierge@example.test',
+      fromName: 'Test Sender',
+      isConfigured: true,
+    },
+    whatsapp: {
+      provider: 'meta_cloud',
+      apiKey: 'EAAB_test_secret_must_not_persist',
+      phoneNumberId: '123456789012345',
+      businessAccountId: '123456789012345',
+      fromNumber: '+201000000000',
+      isConfigured: true,
+    },
+  });
+  const safeConfig = getProviderConfig();
+  assert(safeConfig.email.apiKey === '', 'Email API key is removed before browser persistence');
+  assert(safeConfig.whatsapp.apiKey === '', 'WhatsApp access token is removed before browser persistence');
+  assert(safeConfig.email.isConfigured === false && safeConfig.whatsapp.isConfigured === false, 'Browser-side values can never mark server providers as connected');
+
+  // Test 12: Sending requires server-side configuration and never trusts browser credentials
+  console.log('\\nTest 12: Server-Only Provider Configuration Enforcement');
+  let err12: any = null;
+  try {
+    await sendWhatsAppMessage({
+      recipientPhone: '+201004567890',
+      customerName: 'Guest Tester',
+      content: 'Test WhatsApp message',
+    });
+  } catch (err: any) {
+    err12 = err;
+  }
+  assert(err12 instanceof ProviderConfigurationError, 'WhatsApp dispatch rejects when server-side provider status is unavailable');
+  assert(
+    Array.isArray(err12?.missingFields) && err12.missingFields.includes('WHATSAPP_ACCESS_TOKEN'),
+    'WhatsApp dispatch identifies the required server-side secret'
+  );
+  let err12Email: any = null;
+  try {
+    await sendEmailMessage({
+      recipientEmail: 'guest@example.test',
+      customerName: 'Guest Tester',
+      subject: 'Test Subject',
+      content: 'Test message body',
+    });
+  } catch (err: any) {
+    err12Email = err;
+  }
+  assert(err12Email instanceof ProviderConfigurationError, 'Email dispatch rejects when server-side provider status is unavailable');
+  assert(
+    Array.isArray(err12Email?.missingFields) && err12Email.missingFields.includes('RESEND_API_KEY'),
+    'Email dispatch identifies the required server-side secret'
+  );
+
+  // Reset provider config back to default
+  saveProviderConfig(DEFAULT_PROVIDER_CONFIG);
+
+  console.log('\n================================================================');
+  console.log(`Results: ${passed} passed, ${failed} failed.`);
+  console.log('================================================================');
+
+  if (failed > 0) {
+    process.exit(1);
+  }
+}
+
+runTests().catch((e) => {
+  console.error('Fatal test error:', e);
+  process.exit(1);
+});

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KemetSpirit | Excursions, Boat Trips & Safaris</title>
+    <meta name="description" content="Discover boat trips, island experiences, snorkeling, diving and desert safaris across Egypt. Compare details and book with confidence." />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <link rel="canonical" href="https://kemetspirit.com/" id="canonical-url" />
+    <meta property="og:title" content="KemetSpirit | Excursions, Boat Trips & Safaris" />
+    <meta property="og:description" content="Discover boat trips, island experiences, snorkeling, diving and desert safaris across Egypt. Compare details and book with confidence." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KemetSpirit" />
+    <meta property="og:url" content="https://kemetspirit.com/" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KemetSpirit | Excursions, Boat Trips & Safaris" />
+    <meta name="twitter:description" content="Discover boat trips, island experiences, snorkeling, diving and desert safaris across Egypt. Compare details and book with confidence." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80" />
+    <meta name="theme-color" content="#0A6C74" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="KemetSpirit" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://uvtbtpxtrrmaublrztgv.supabase.co">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=80" fetchpriority="high">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Google Consent Mode defaults must be set before any optional tag can load. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function(){ window.dataLayer.push(arguments); };
+      window.gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        personalization_storage: 'denied',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+        wait_for_update: 500
+      });
+    </script>
+</head>
+  <body class="bg-[#FAF8F5] text-[#111A24] antialiased selection:bg-[#0A6C74] selection:text-white">
+    <script>
+      // WebMCP is experimental and feature-detected; browsers without the API are unaffected.
+      (function () {
+        var modelContext = navigator.modelContext;
+        if (!modelContext || typeof modelContext.registerTool !== 'function') return;
+        try {
+          modelContext.registerTool({
+            name: 'search_kemetspirit_excursions',
+            description: 'Search published KemetSpirit tours and experiences. Read-only; returns published tour titles, summaries, prices and detail URLs.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                search: { type: 'string', description: 'Optional words to match against published excursion titles and descriptions.' },
+                limit: { type: 'integer', minimum: 1, maximum: 20, default: 10 }
+              },
+              additionalProperties: false
+            },
+            execute: async function (input) {
+              var limit = Number(input && input.limit);
+              params.set('limit', String(Number.isInteger(limit) ? Math.max(1, Math.min(20, limit)) : 10));
+              var response = await fetch('/mcp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                  jsonrpc: '2.0',
+                  id: 'webmcp-search',
+                  method: 'tools/call',
+                  params: {
+                    name: 'search_published_excursions',
+                    arguments: {
+                      query: input && typeof input.search === 'string' ? input.search.slice(0, 120) : '',
+                      limit: Number.isInteger(limit) ? Math.max(1, Math.min(20, limit)) : 10
+                    }
+                  }
+                })
+              });
+              if (!response.ok) throw new Error('Excursion search is temporarily unavailable.');
+              var payload = await response.json();
+              if (payload.error || !payload.result) throw new Error('Excursion search is temporarily unavailable.');
+              return payload.result;
+            }
+          });
+        } catch (error) {
+          console.warn('[WebMCP] Tool registration unavailable:', error);
+        }
+      })();
+    </script>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

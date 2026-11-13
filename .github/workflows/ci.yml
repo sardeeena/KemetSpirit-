@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "chatgpt/**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: TypeScript and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+
+      - name: Enforce a clean dependency audit
+        run: npm audit --audit-level=low
+
+      - name: Validate first-party PWA assets
+        run: |
+          node --check public/sw.js
+          node -e 'JSON.parse(require("fs").readFileSync("public/manifest.webmanifest", "utf8")); console.log("PWA manifest JSON is valid")'
+
+      - name: Enforce canonical website branding
+        run: npm run test:brand-identity
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: Build production assets and server
+        run: npm run build
+
+      - name: Verify communication provider security and validation
+        run: npm run test:comm
+
+      - name: Verify booking identifier and production fallback behavior
+        run: npm run test:booking
+
+      - name: Validate catalogue source and read-only import safety
+        run: npm run test:catalogue
+
+      - name: Verify Supabase project isolation
+        run: npm run test:supabase-project
+      - name: Verify server and SPA route fallback configuration
+        run: npm run test:routes
+
+      - name: Verify admin authentication and role provisioning security
+        run: npm run test:security
+
+      - name: Verify superadmin technical center security boundaries
+        run: npm run test:technical
+
+  database:
+    name: Supabase migrations and RLS tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Supabase CLI
+        id: setup-supabase-cli
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.1.0
+
+      - name: Start isolated local Supabase stack
+        run: supabase start
+
+      - name: Apply the complete migration history to a clean database
+        run: supabase db reset
+
+      - name: Run pgTAP database security tests
+        run: supabase test db
+
+      - name: Stop local Supabase stack
+        if: always() && steps.setup-supabase-cli.outcome == 'success'
+        run: supabase stop --no-backup
