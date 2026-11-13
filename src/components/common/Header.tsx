@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Menu, 
-  X, 
-  Search, 
-  CalendarCheck, 
-  MessageCircle, 
-  Globe, 
+import {
+  Menu,
+  X,
+  Search,
+  CalendarCheck,
+  MessageCircle,
+  Globe,
   ChevronDown,
-  Compass,
   Heart,
   Scale,
   User,
@@ -44,11 +43,11 @@ interface HeaderProps {
   onOpenWishlist?: () => void;
   onOpenCompare?: () => void;
   onOpenHelpInquiry?: () => void;
+  onSearch?: (query: string) => void;
+  initialSearchQuery?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  currentCurrency,
-  onCurrencyChange,
   onOpenMyBooking,
   onNavigateSection,
   onNavigateHome,
@@ -61,23 +60,29 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenWishlist,
   onOpenCompare,
   onOpenHelpInquiry,
+  onSearch,
+  initialSearchQuery = '',
 }) => {
   const { language, setLanguage, supportedLanguages, t } = useLanguage();
-  const { theme: _theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const { wishlistCount } = useWishlist();
   const { comparisonCount } = useComparison();
   const { user, isAdmin, signOut } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState(initialSearchQuery);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [_isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const lastScrollY = useRef(0);
 
-  // Auto-hide & fade away on scroll down, animate & fade back in on scroll up
+  useEffect(() => {
+    setSearchInput(initialSearchQuery);
+  }, [initialSearchQuery]);
+
   useEffect(() => {
     let ticking = false;
 
@@ -86,7 +91,6 @@ export const Header: React.FC<HeaderProps> = ({
         window.requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
 
-          // Always visible at the top
           if (currentScrollY <= 25) {
             setIsHeaderVisible(true);
             setIsScrolled(false);
@@ -97,7 +101,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           setIsScrolled(true);
 
-          // Keep visible if mobile menu or dropdowns are open
           if (mobileMenuOpen || userDropdownOpen) {
             setIsHeaderVisible(true);
             lastScrollY.current = currentScrollY;
@@ -105,11 +108,9 @@ export const Header: React.FC<HeaderProps> = ({
             return;
           }
 
-          // If scrolled down by more than 6px past threshold, fade away
-          if (currentScrollY > lastScrollY.current + 6 && currentScrollY > 50) {
+          if (currentScrollY > lastScrollY.current + 8 && currentScrollY > 70) {
             setIsHeaderVisible(false);
           } else if (currentScrollY < lastScrollY.current - 6) {
-            // Scrolling up reveals it with animation
             setIsHeaderVisible(true);
           }
 
@@ -124,7 +125,6 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [mobileMenuOpen, userDropdownOpen]);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -175,347 +175,352 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const handleHeaderSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const trimmed = searchInput.trim();
+    if (onSearch) {
+      onSearch(trimmed);
+    } else if (onNavigateExcursions) {
+      onNavigateExcursions();
+    }
+  };
+
+  const handleClearHeaderSearch = () => {
+    setSearchInput('');
+    if (onSearch && window.location.pathname.startsWith('/excursions')) {
+      onSearch('');
+    }
+  };
+
+  const navLinkClass =
+    'relative py-1.5 text-[13px] font-medium text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 transition-colors cursor-pointer whitespace-nowrap shrink-0 after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-0 after:bg-[#0F4C81] dark:after:bg-sky-400 after:transition-all after:duration-200 hover:after:w-full';
+
   return (
-    <header 
+    <header
       className={`sticky top-0 z-40 w-full transition-all duration-300 ease-in-out transform ${
-        isHeaderVisible 
-          ? 'translate-y-0 opacity-100' 
+        isHeaderVisible
+          ? 'translate-y-0 opacity-100'
           : '-translate-y-full opacity-0 pointer-events-none'
       }`}
     >
-      {/* Main Navigation */}
-      <div 
-        className={`w-full bg-[#F7F4ED] dark:bg-[#0E1B2A] text-stone-800 dark:text-slate-100 border-b border-[#E8E3DA] dark:border-slate-800 shadow-xs transition-all duration-300 ease-in-out ${
-          isHeaderVisible
-            ? 'opacity-100 translate-y-0'
-            : 'opacity-0 -translate-y-2 pointer-events-none'
-        }`}
+      <div
+        className={`w-full border-b transition-colors duration-300 ${
+          isScrolled
+            ? 'bg-white/95 dark:bg-[#07111C]/95 backdrop-blur-md border-[#DCE2EA] dark:border-[#1E344E]'
+            : 'bg-[#F6F7F9] dark:bg-[#07111C] border-[#DCE2EA] dark:border-[#1E344E]'
+        } text-[#0A192F] dark:text-slate-100`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between bg-[#F7F4ED] dark:bg-[#0E1B2A]">
-          {/* Brand Logo */}
-          <a 
-            href="/" 
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2.5 sm:gap-3 2xl:gap-5">
+          {/* Zone 1: Brand Crest & Wordmark */}
+          <a
+            href="/"
             onClick={handleLogoClick}
-            className="flex items-center group focus:outline-hidden shrink-0"
+            className="flex items-center gap-2.5 group focus:outline-hidden shrink-0"
             id="brand-logo-link"
             aria-label="KemetSpirit Home"
           >
-            <img 
-              src="/logo.png" 
-              alt="KemetSpirit" 
-              width="44"
-              height="54"
+            <img
+              src="/logo.png"
+              alt="KemetSpirit"
+              width="40"
+              height="49"
               fetchPriority="high"
               decoding="async"
-              className="h-10 sm:h-11 md:h-12 w-auto object-contain drop-shadow-xs dark:bg-[#FAF8F5] dark:p-1 dark:rounded-lg group-hover:scale-105 transition-transform duration-300"
+              className="h-9 sm:h-10 w-auto object-contain dark:bg-[#F6F7F9] dark:p-1 dark:rounded-lg transition-transform duration-300 group-hover:scale-[1.03]"
             />
+            <span className="hidden sm:inline-block font-display text-lg font-bold tracking-tight text-[#0A192F] dark:text-white whitespace-nowrap">
+              KemetSpirit
+            </span>
           </a>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden xl:flex items-center space-x-2 2xl:space-x-3 text-xs 2xl:text-sm font-semibold text-stone-700 dark:text-slate-200" aria-label="Main Navigation">
-            <button 
-              type="button"
-              onClick={handleExcursionsClick} 
-              className="text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0"
-            >
+          {/* Header Excursion Search Bar */}
+          <form
+            role="search"
+            id="header-search-form"
+            onSubmit={handleHeaderSearchSubmit}
+            className="flex-1 min-w-0 max-w-none sm:max-w-[230px] md:max-w-xs xl:flex-none xl:w-44 2xl:w-56"
+          >
+            <div className="relative w-full">
+              <Search
+                className="w-3.5 h-3.5 text-[#5C6F84] dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                aria-hidden="true"
+              />
+              <input
+                id="header-search-input"
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search excursions..."
+                aria-label="Search excursions"
+                className="w-full h-9 pl-8 pr-8 text-xs font-medium rounded-lg border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] text-[#0A192F] dark:text-white placeholder:text-[#5C6F84] dark:placeholder:text-slate-400 focus:outline-hidden focus:border-[#0F4C81] dark:focus:border-sky-400 transition-colors"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={handleClearHeaderSearch}
+                  aria-label="Clear excursion search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[#5C6F84] hover:text-[#0A192F] dark:text-slate-400 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : null}
+            </div>
+          </form>
+
+          {/* Zone 2: Primary Editorial Navigation */}
+          <nav
+            className="hidden xl:flex items-center gap-3.5 2xl:gap-6 shrink-0"
+            aria-label="Main Navigation"
+          >
+            <button type="button" onClick={handleExcursionsClick} className={navLinkClass}>
               {t('nav.allExcursions')}
             </button>
-            <button 
-              type="button"
-              onClick={() => handleNavClick('destinations-section')} 
-              className="text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0"
-            >
+            <button type="button" onClick={() => handleNavClick('destinations-section')} className={navLinkClass}>
               {t('nav.destinations')}
             </button>
-            <button 
-              type="button"
-              onClick={() => handleNavClick('categories-section')} 
-              className="text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0"
-            >
+            <button type="button" onClick={() => handleNavClick('categories-section')} className={navLinkClass}>
               {t('nav.experiences')}
             </button>
-            <button 
-              type="button"
-              onClick={() => handleNavClick('why-us-section')} 
-              className="text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              Why Choose Us
-            </button>
-            <button 
-              type="button"
-              onClick={() => handleNavClick('reviews-section')} 
-              className="text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              {t('nav.guestReviews')}
-            </button>
-            <a href="/blog" aria-label="Visit the KemetSpirit blog" className="inline-flex items-center rounded-full border border-[#0A6C74]/30 bg-[#E8F3F4] px-3.5 py-1 text-sm font-bold text-[#0A6C74] shadow-xs transition-colors hover:bg-[#D7EBEC] dark:border-teal-400/30 dark:bg-teal-950/50 dark:text-teal-300 dark:hover:bg-teal-900/60 whitespace-nowrap shrink-0">Blog</a>
+            <a href="/blog" aria-label="Visit the KemetSpirit blog" className={navLinkClass}>
+              Journal
+            </a>
+            <a href="/support" aria-label="Open KemetSpirit customer support" className={navLinkClass}>
+              Support
+            </a>
+          </nav>
 
-            {/* Find My Booking */}
-            <button 
+          {/* Zone 3: Utility & Booking Action Cluster */}
+          <div className="hidden xl:flex items-center gap-1.5 shrink-0">
+            <button
               type="button"
               id="my-booking-header-btn"
               onClick={onOpenMyBooking}
-              className="inline-flex items-center space-x-1 text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 cursor-pointer text-sm font-semibold whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 p-2 2xl:px-2.5 2xl:py-1.5 text-[13px] font-medium text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 rounded-lg hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] transition-colors cursor-pointer whitespace-nowrap shrink-0"
               title={t('nav.findMyBooking')}
+              aria-label={t('nav.findMyBooking')}
             >
-              <CalendarCheck className="w-4 h-4 text-[#0A6C74] dark:text-[#2dd4bf]" />
-              <span>{t('nav.findMyBooking')}</span>
+              <CalendarCheck className="w-4 h-4 text-[#0F4C81] dark:text-sky-400 shrink-0" />
+              <span className="hidden 2xl:inline">{t('nav.findMyBooking')}</span>
             </button>
 
-            {/* Wishlist Button */}
             <button
               type="button"
               onClick={onOpenWishlist}
-              className="relative p-1.5 text-stone-700 dark:text-slate-200 hover:text-rose-500 dark:hover:text-rose-400 transition-colors cursor-pointer rounded-lg hover:bg-stone-200/50 dark:hover:bg-slate-800/60 whitespace-nowrap shrink-0"
+              className="relative p-2 text-[#2D3F54] dark:text-slate-200 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer rounded-lg hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] shrink-0"
               title="Saved Excursions"
               aria-label={`View ${wishlistCount} saved excursions`}
             >
               <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'fill-rose-500 text-rose-500' : ''}`} />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                <span className="absolute -top-0.5 -right-0.5 bg-rose-600 text-white font-mono-num text-[10px] font-bold w-4 h-4 rounded-md flex items-center justify-center">
                   {wishlistCount}
                 </span>
               )}
             </button>
 
-            {/* Compare Button */}
             {comparisonCount > 0 && (
               <button
                 type="button"
                 onClick={onOpenCompare}
-                className="relative p-1.5 text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors cursor-pointer rounded-lg hover:bg-stone-200/50 dark:hover:bg-slate-800/60 whitespace-nowrap shrink-0"
+                className="relative p-2 text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 transition-colors cursor-pointer rounded-lg hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] shrink-0"
                 title="Compare Excursions"
                 aria-label={`Compare ${comparisonCount} excursions`}
               >
-                <Scale className="w-4 h-4 text-[#0A6C74] dark:text-[#2dd4bf]" />
-                <span className="absolute -top-1 -right-1 bg-[#0A6C74] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                <Scale className="w-4 h-4 text-[#0F4C81] dark:text-sky-400" />
+                <span className="absolute -top-0.5 -right-0.5 bg-[#0F4C81] text-white font-mono-num text-[10px] font-bold w-4 h-4 rounded-md flex items-center justify-center">
                   {comparisonCount}
                 </span>
               </button>
             )}
 
-            {/* Theme Mode Toggle (Default: Light, Optional: Dark) */}
             <button
               type="button"
               id="theme-toggle-main-nav"
               onClick={toggleTheme}
-              className="p-1.5 text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors cursor-pointer rounded-lg hover:bg-stone-200/50 dark:hover:bg-slate-800/60 whitespace-nowrap shrink-0"
-              title={isDark ? "Switch to Light Mode (Default)" : "Switch to Dark Mode"}
-              aria-label={isDark ? "Switch to Light Mode (Default)" : "Switch to Dark Mode"}
+              className="p-2 text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 transition-colors cursor-pointer rounded-lg hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] shrink-0"
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {isDark ? (
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-4 h-4 text-[#E3B34C]" />
               ) : (
-                <Moon className="w-4 h-4 text-[#0A6C74]" />
+                <Moon className="w-4 h-4 text-[#0F4C81]" />
               )}
             </button>
 
-            <a href="/support" aria-label="Open KemetSpirit customer support" className="text-stone-700 dark:text-slate-200 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] transition-colors py-1 text-sm font-semibold whitespace-nowrap shrink-0">Support</a>
-          </nav>
+            <div className="h-5 w-px bg-[#DCE2EA] dark:bg-[#1E344E] mx-0.5" aria-hidden="true" />
 
-        {/* Action Controls */}
-        <div className="hidden xl:flex items-center space-x-1.5 2xl:space-x-2.5 shrink-0">
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  id="user-menu-button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] text-xs font-semibold text-[#0A192F] dark:text-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                  aria-expanded={userDropdownOpen}
+                >
+                  <div className="w-5 h-5 rounded-md bg-[#0F4C81] text-white flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{user.fullName.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <span className="max-w-[96px] truncate">{user.fullName.split(' ')[0]}</span>
+                  <ChevronDown className={`w-3 h-3 text-[#5C6F84] transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-          {/* User Auth Section */}
-          {user ? (
-            <div className="relative" ref={userMenuRef}>
-              <button
-                type="button"
-                id="user-menu-button"
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border border-stone-300/70 dark:border-slate-700 bg-stone-200/60 dark:bg-slate-800/80 hover:bg-stone-200 dark:hover:bg-slate-700 text-xs font-semibold text-stone-800 dark:text-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0"
-                aria-expanded={userDropdownOpen}
-              >
-                <div className="w-5 h-5 rounded-full bg-[#0A6C74] text-white flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0">
-                  {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{user.fullName.charAt(0).toUpperCase()}</span>
-                  )}
-                </div>
-                <span className="max-w-[100px] truncate text-stone-800 dark:text-slate-100">{user.fullName.split(' ')[0]}</span>
-                <ChevronDown className={`w-3 h-3 text-stone-500 dark:text-slate-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+                <AnimatePresence>
+                  {userDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] rounded-xl shadow-lg py-1.5 z-50 text-xs overflow-hidden"
+                    >
+                      <div className="px-3.5 py-2.5 border-b border-[#DCE2EA] dark:border-[#1E344E] bg-[#F6F7F9] dark:bg-[#0B1624]">
+                        <p className="font-bold text-[#0A192F] dark:text-white truncate">{user.fullName}</p>
+                        <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">{user.email}</p>
+                        <span className="inline-block mt-1 text-[10px] uppercase font-bold tracking-widest text-[#B58428] dark:text-[#E3B34C]">
+                          {isAdmin ? 'Staff / Admin' : 'Voyager'}
+                        </span>
+                      </div>
 
-              <AnimatePresence>
-                {userDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-1.5 w-56 bg-white border border-stone-200 rounded-lg shadow-xl py-1 z-50 text-xs overflow-hidden"
-                  >
-                    <div className="px-3 py-2 border-b border-stone-100 bg-stone-50/70">
-                      <p className="font-bold text-stone-900 truncate">{user.fullName}</p>
-                      <p className="text-[11px] text-stone-500 truncate">{user.email}</p>
-                      <span className={`inline-block mt-1 text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
-                        isAdmin ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {isAdmin ? 'Staff / Admin' : 'Voyager'}
-                      </span>
-                    </div>
-
-                    <div className="py-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserDropdownOpen(false);
-                          if (onNavigateAccount) onNavigateAccount();
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-stone-50 flex items-center space-x-2 text-stone-700"
-                      >
-                        <User className="w-3.5 h-3.5 text-[#0A6C74]" />
-                        <span>My Account Profile</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserDropdownOpen(false);
-                          if (onOpenMyBooking) onOpenMyBooking();
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-stone-50 flex items-center space-x-2 text-stone-700"
-                      >
-                        <CalendarCheck className="w-3.5 h-3.5 text-[#0A6C74]" />
-                        <span>My Reservations</span>
-                      </button>
-
-                      {isAdmin && onNavigateAdmin && (
+                      <div className="py-1">
                         <button
                           type="button"
                           onClick={() => {
                             setUserDropdownOpen(false);
-                            onNavigateAdmin();
+                            if (onNavigateAccount) onNavigateAccount();
                           }}
-                          className="w-full text-left px-3 py-2 hover:bg-stone-50 flex items-center space-x-2 text-amber-700 font-semibold"
+                          className="w-full text-left px-3.5 py-2 hover:bg-[#F6F7F9] dark:hover:bg-[#14263D] flex items-center gap-2 text-[#2D3F54] dark:text-slate-200 cursor-pointer"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-                          <span>Admin CMS Portal</span>
+                          <User className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                          <span>My Account Profile</span>
                         </button>
-                      )}
-                    </div>
 
-                    <div className="border-t border-stone-100 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserDropdownOpen(false);
-                          signOut();
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center space-x-2"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-1.5 shrink-0">
-              <button
-                type="button"
-                id="header-sign-in-btn"
-                onClick={() => {
-                  if (onNavigateLogin) onNavigateLogin();
-                }}
-                className="inline-flex items-center px-3 py-2 text-xs font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-200/60 dark:text-slate-200 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer whitespace-nowrap shrink-0"
-              >
-                <LogIn className="w-3.5 h-3.5 mr-1 text-[#0A6C74]" />
-                <span>Sign In</span>
-              </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            if (onOpenMyBooking) onOpenMyBooking();
+                          }}
+                          className="w-full text-left px-3.5 py-2 hover:bg-[#F6F7F9] dark:hover:bg-[#14263D] flex items-center gap-2 text-[#2D3F54] dark:text-slate-200 cursor-pointer"
+                        >
+                          <CalendarCheck className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                          <span>My Reservations</span>
+                        </button>
 
-              <button
-                type="button"
-                id="header-register-btn"
-                onClick={() => {
-                  if (onNavigateRegister) onNavigateRegister();
-                }}
-                className="inline-flex items-center px-3 py-2 text-xs font-semibold text-[#0A6C74] hover:text-white hover:bg-[#0A6C74] border border-[#0A6C74]/40 rounded-xl transition-all cursor-pointer font-medium whitespace-nowrap shrink-0"
-              >
-                <UserPlus className="w-3.5 h-3.5 mr-1" />
-                <span>Register</span>
-              </button>
-            </div>
-          )}
+                        {isAdmin && onNavigateAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserDropdownOpen(false);
+                              onNavigateAdmin();
+                            }}
+                            className="w-full text-left px-3.5 py-2 hover:bg-[#F6F7F9] dark:hover:bg-[#14263D] flex items-center gap-2 text-[#B58428] dark:text-[#E3B34C] font-semibold cursor-pointer"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Admin CMS Portal</span>
+                          </button>
+                        )}
+                      </div>
 
-          {/* Require Help Button */}
-          {onOpenHelpInquiry && (
+                      <div className="border-t border-[#DCE2EA] dark:border-[#1E344E] pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            signOut();
+                          }}
+                          className="w-full text-left px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center gap-2 cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  id="header-sign-in-btn"
+                  onClick={() => {
+                    if (onNavigateLogin) onNavigateLogin();
+                  }}
+                  className="inline-flex items-center px-2.5 py-2 text-xs font-semibold text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <LogIn className="w-3.5 h-3.5 mr-1 text-[#0F4C81] dark:text-sky-400" />
+                  <span>Sign In</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="header-register-btn"
+                  onClick={() => {
+                    if (onNavigateRegister) onNavigateRegister();
+                  }}
+                  className="inline-flex items-center px-2.5 py-2 text-xs font-semibold text-[#0F4C81] dark:text-sky-400 hover:bg-[#EBF3FA] dark:hover:bg-[#14263D] border border-[#0F4C81]/30 dark:border-sky-400/30 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <UserPlus className="w-3.5 h-3.5 mr-1" />
+                  <span>Register</span>
+                </button>
+              </div>
+            )}
+
             <button
               type="button"
-              onClick={onOpenHelpInquiry}
-              className="hidden 2xl:inline-flex items-center px-3 py-2 text-xs font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-200/60 rounded-xl transition-all cursor-pointer border border-stone-300/70 bg-stone-200/40 whitespace-nowrap shrink-0"
-              title="Require Help, Concierge & Custom Tours"
+              id="book-excursion-header-btn"
+              onClick={handleBookingClick}
+              className="inline-flex items-center px-3.5 2xl:px-4 py-2 text-xs font-semibold text-white bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:text-[#07111C] dark:hover:bg-sky-400 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
             >
-              <HelpCircle className="w-3.5 h-3.5 mr-1 text-[#0A6C74]" />
-              <span>Require Help</span>
+              {t('nav.bookExcursion')}
             </button>
-          )}
+          </div>
 
-          {/* Book Excursion */}
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            type="button"
-            id="book-excursion-header-btn"
-            onClick={handleBookingClick}
-            className="inline-flex items-center px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#0A6C74] to-[#0D838C] hover:from-[#08565C] hover:to-[#0A6C74] rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap shrink-0"
-          >
-            {t('nav.bookExcursion')}
-          </motion.button>
-        </div>
+          {/* Mobile Controls */}
+          <div className="flex items-center gap-2 xl:hidden shrink-0">
+            <button
+              type="button"
+              onClick={handleBookingClick}
+              className="hidden sm:inline-flex items-center px-3.5 py-2 text-xs font-semibold text-white bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:text-[#07111C] rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            >
+              {t('nav.bookExcursion')}
+            </button>
 
-        {/* Mobile menu button & actions */}
-        <div className="flex items-center space-x-2 xl:hidden shrink-0">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.96 }}
-            type="button"
-            onClick={handleBookingClick}
-            className="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#0A6C74] to-[#0D838C] hover:from-[#08565C] hover:to-[#0A6C74] rounded-lg shadow-xs transition-all cursor-pointer whitespace-nowrap"
-          >
-            <span>{t('nav.bookExcursion')}</span>
-          </motion.button>
-
-          <a
-            href="/blog"
-            aria-label="Visit the KemetSpirit blog"
-            className="inline-flex items-center justify-center rounded-lg border border-[#0A6C74]/30 bg-[#E8F3F4] px-2.5 py-1.5 text-xs font-bold text-[#0A6C74] dark:border-teal-400/30 dark:bg-teal-950/50 dark:text-teal-300 whitespace-nowrap"
-          >
-            Blog
-          </a>
-
-          <button
-            type="button"
-            id="mobile-menu-toggle-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-stone-800 dark:text-slate-200 hover:bg-stone-200 dark:hover:bg-slate-800 rounded-lg border border-stone-300/70 dark:border-slate-700 bg-stone-200/60 dark:bg-slate-800/80 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+            <button
+              type="button"
+              id="mobile-menu-toggle-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-[#0A192F] dark:text-slate-100 hover:bg-[#EEF1F5] dark:hover:bg-[#14263D] rounded-lg border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="xl:hidden border-t border-[#E8E3DA] bg-[#FAF8F5] px-5 py-5 shadow-lg overflow-hidden"
+            className="xl:hidden border-b border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] px-5 py-5 shadow-lg overflow-hidden"
           >
-            <nav className="flex flex-col space-y-3.5 text-base font-medium text-[#0E1B2A]">
-              {/* Mobile User Profile Section */}
+            <nav className="flex flex-col space-y-3 text-sm font-medium text-[#0A192F] dark:text-slate-100">
               {user ? (
-                <div className="p-3 bg-stone-100 rounded-lg border border-stone-200 space-y-2.5">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-[#0A6C74] text-white flex items-center justify-center font-bold text-sm overflow-hidden">
+                <div className="p-3.5 bg-[#F6F7F9] dark:bg-[#07111C] rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#0F4C81] text-white flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
                       {user.avatarUrl ? (
                         <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -523,23 +528,22 @@ export const Header: React.FC<HeaderProps> = ({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm text-stone-900 truncate">{user.fullName}</p>
-                      <p className="text-xs text-stone-500 truncate">{user.email}</p>
+                      <p className="font-bold text-sm text-[#0A192F] dark:text-white truncate">{user.fullName}</p>
+                      <p className="text-xs text-[#5C6F84] dark:text-slate-400 truncate">{user.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 pt-1 border-t border-stone-200">
+                  <div className="flex items-center gap-2 pt-2 border-t border-[#DCE2EA] dark:border-[#1E344E]">
                     <button
                       type="button"
                       onClick={() => {
                         setMobileMenuOpen(false);
                         if (onNavigateAccount) onNavigateAccount();
                       }}
-                      className="flex-1 py-1.5 px-2 bg-white hover:bg-stone-50 border border-stone-200 rounded text-xs font-semibold text-stone-800 text-center flex items-center justify-center space-x-1"
+                      className="flex-1 py-2 px-2.5 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-semibold text-[#0A192F] dark:text-white flex items-center justify-center gap-1.5"
                     >
-                      <User className="w-3.5 h-3.5 text-[#0A6C74]" />
-                      <span>My Profile</span>
+                      <User className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                      <span>Profile</span>
                     </button>
-
                     {isAdmin && onNavigateAdmin && (
                       <button
                         type="button"
@@ -547,20 +551,19 @@ export const Header: React.FC<HeaderProps> = ({
                           setMobileMenuOpen(false);
                           onNavigateAdmin();
                         }}
-                        className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded text-xs font-semibold text-amber-800 text-center flex items-center justify-center space-x-1"
+                        className="py-2 px-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/40 rounded-lg text-xs font-semibold text-[#B58428] dark:text-[#E3B34C] flex items-center justify-center gap-1"
                       >
-                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                        <ShieldCheck className="w-3.5 h-3.5" />
                         <span>Admin</span>
                       </button>
                     )}
-
                     <button
                       type="button"
                       onClick={() => {
                         setMobileMenuOpen(false);
                         signOut();
                       }}
-                      className="py-1.5 px-2 bg-white hover:bg-rose-50 border border-stone-200 rounded text-xs font-semibold text-rose-600 text-center flex items-center justify-center space-x-1"
+                      className="py-2 px-2.5 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -568,26 +571,25 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 p-1">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setMobileMenuOpen(false);
                       if (onNavigateLogin) onNavigateLogin();
                     }}
-                    className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-md text-xs font-bold text-stone-800 flex items-center justify-center space-x-1.5 transition-colors"
+                    className="py-2.5 px-3 bg-[#F6F7F9] dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg text-xs font-bold text-[#0A192F] dark:text-white flex items-center justify-center gap-1.5"
                   >
-                    <LogIn className="w-3.5 h-3.5 text-[#0A6C74]" />
+                    <LogIn className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
                     <span>Sign In</span>
                   </button>
-
                   <button
                     type="button"
                     onClick={() => {
                       setMobileMenuOpen(false);
                       if (onNavigateRegister) onNavigateRegister();
                     }}
-                    className="py-2.5 px-3 bg-[#0A6C74] hover:bg-[#08565C] text-white rounded-md text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors shadow-2xs"
+                    className="py-2.5 px-3 bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C] rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Register</span>
@@ -595,12 +597,22 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
 
-              {/* Mobile Language Selector */}
-              <div className="p-3 bg-stone-100 rounded-lg border border-stone-200 space-y-2">
-                <span className="text-[11px] uppercase font-bold text-stone-500 tracking-wider flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-[#0A6C74]" />
-                  {t('mobile.selectLanguage')}
-                </span>
+              {/* Language & Theme bar */}
+              <div className="p-3 bg-[#F6F7F9] dark:bg-[#07111C] rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase font-bold text-[#5C6F84] dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+                    {t('mobile.selectLanguage')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-[#0E1C2E] text-[#0A192F] dark:text-white border border-[#DCE2EA] dark:border-[#1E344E]"
+                  >
+                    {isDark ? <Sun className="w-3.5 h-3.5 text-[#E3B34C]" /> : <Moon className="w-3.5 h-3.5 text-[#0F4C81]" />}
+                    <span>{isDark ? 'Light' : 'Dark'}</span>
+                  </button>
+                </div>
                 <div className="grid grid-cols-5 gap-1">
                   {supportedLanguages.map((langItem) => {
                     const isSelected = language === langItem.code;
@@ -610,12 +622,16 @@ export const Header: React.FC<HeaderProps> = ({
                         type="button"
                         onClick={() => {
                           setLanguage(langItem.code as LanguageCode);
-                          void recordVisitorEvent({ event_name: 'language_changed', page_path: window.location.pathname, event_data: { language: langItem.code } });
+                          void recordVisitorEvent({
+                            event_name: 'language_changed',
+                            page_path: window.location.pathname,
+                            event_data: { language: langItem.code },
+                          });
                         }}
-                        className={`py-1.5 px-2 rounded-md text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+                        className={`py-1.5 px-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                           isSelected
-                            ? 'bg-[#0A6C74] text-white shadow-xs'
-                            : 'bg-white text-stone-700 border border-stone-200 hover:bg-stone-50'
+                            ? 'bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C]'
+                            : 'bg-white dark:bg-[#0E1C2E] text-[#2D3F54] dark:text-slate-300 border border-[#DCE2EA] dark:border-[#1E344E]'
                         }`}
                       >
                         <span aria-hidden="true">{langItem.flag}</span>
@@ -626,127 +642,64 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
 
-              {/* Mobile Theme Selector (Default: Light, Optional: Dark) */}
-              <div className="p-3 bg-stone-100 rounded-lg border border-stone-200 flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-xs font-semibold text-stone-800">
-                  {isDark ? (
-                    <Moon className="w-4 h-4 text-[#60C3CC]" />
-                  ) : (
-                    <Sun className="w-4 h-4 text-amber-500" />
-                  )}
-                  <span>Theme: {isDark ? 'Dark Theme' : 'Light Theme (Default)'}</span>
-                </div>
+              <div className="grid grid-cols-1 divide-y divide-[#DCE2EA] dark:divide-[#1E344E]">
                 <button
                   type="button"
-                  onClick={toggleTheme}
-                  className="px-2.5 py-1 text-xs font-semibold rounded-md bg-white text-stone-800 border border-stone-200 shadow-2xs hover:bg-stone-50 transition-colors"
+                  onClick={handleExcursionsClick}
+                  className="text-left py-2.5 px-1 text-[#0F4C81] dark:text-sky-400 font-semibold flex items-center justify-between"
                 >
-                  {isDark ? 'Switch to Light' : 'Switch to Dark'}
+                  <span>{t('nav.allExcursions')}</span>
+                  <Search className="w-4 h-4" />
                 </button>
-              </div>
-
-              {/* Wishlist link in mobile */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  if (onOpenWishlist) onOpenWishlist();
-                }}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100 text-rose-600 font-semibold flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-2">
-                  <Heart className="w-4 h-4 fill-current" />
-                  <span>Saved Excursions</span>
-                </div>
-                <span className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full font-bold">
-                  {wishlistCount}
-                </span>
-              </button>
-
-              {comparisonCount > 0 && (
+                <button type="button" onClick={() => handleNavClick('destinations-section')} className="text-left py-2.5 px-1">
+                  {t('mobile.destinationsDetailed')}
+                </button>
+                <button type="button" onClick={() => handleNavClick('categories-section')} className="text-left py-2.5 px-1">
+                  {t('mobile.categories')}
+                </button>
+                <a href="/blog" onClick={() => setMobileMenuOpen(false)} className="text-left py-2.5 px-1 font-semibold text-[#0F4C81] dark:text-sky-400">
+                  Journal &amp; Field Notes
+                </a>
+                <a href="/support" onClick={() => setMobileMenuOpen(false)} className="text-left py-2.5 px-1 font-semibold">
+                  Customer Support
+                </a>
                 <button
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    if (onOpenCompare) onOpenCompare();
+                    if (onOpenWishlist) onOpenWishlist();
                   }}
-                  className="text-left py-2 px-3 rounded hover:bg-stone-100 text-[#0A6C74] font-semibold flex items-center justify-between"
+                  className="text-left py-2.5 px-1 text-rose-600 dark:text-rose-400 font-semibold flex items-center justify-between"
                 >
-                  <div className="flex items-center space-x-2">
-                    <Scale className="w-4 h-4" />
-                    <span>Compare Excursions</span>
-                  </div>
-                  <span className="bg-[#E8F3F4] text-[#0A6C74] text-xs px-2 py-0.5 rounded-full font-bold">
-                    {comparisonCount}
+                  <span className="flex items-center gap-2">
+                    <Heart className="w-4 h-4 fill-current" />
+                    <span>Saved Excursions</span>
                   </span>
+                  <span className="font-mono-num text-xs font-bold">{wishlistCount}</span>
                 </button>
-              )}
+                {comparisonCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      if (onOpenCompare) onOpenCompare();
+                    }}
+                    className="text-left py-2.5 px-1 text-[#0F4C81] dark:text-sky-400 font-semibold flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Scale className="w-4 h-4" />
+                      <span>Compare Excursions</span>
+                    </span>
+                    <span className="font-mono-num text-xs font-bold">{comparisonCount}</span>
+                  </button>
+                )}
+              </div>
 
-              <button
-                type="button"
-                onClick={handleExcursionsClick}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100 text-[#0A6C74] font-semibold flex items-center justify-between"
-              >
-                <span>{t('nav.allExcursions')}</span>
-                <Search className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNavClick('tours-section')}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100"
-              >
-                {t('mobile.popularTours')}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNavClick('destinations-section')}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100"
-              >
-                {t('mobile.destinationsDetailed')}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNavClick('categories-section')}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100"
-              >
-                {t('mobile.categories')}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNavClick('why-us-section')}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100"
-              >
-                Why Choose Us
-              </button>
-              <button
-                type="button"
-                onClick={() => handleNavClick('reviews-section')}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100"
-              >
-                {t('mobile.reviews')}
-              </button>
-              <a href="/blog" onClick={() => setMobileMenuOpen(false)} className="text-left py-2 px-3 rounded hover:bg-stone-100 dark:hover:bg-slate-800/60 font-semibold text-[#0A6C74] dark:text-teal-300 flex items-center justify-between">
-                <span>Blog &amp; Travel Journal</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0A6C74]/10 text-[#0A6C74] px-2 py-0.5 rounded-full">New</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  if (onOpenMyBooking) onOpenMyBooking();
-                }}
-                className="text-left py-2 px-3 rounded hover:bg-stone-100 dark:hover:bg-slate-800/60 font-semibold text-stone-800 dark:text-slate-200 flex items-center space-x-2"
-              >
-                <CalendarCheck className="w-4 h-4 text-[#0A6C74] dark:text-[#2dd4bf]" />
-                <span>{t('nav.findMyBooking')}</span>
-              </button>
-              <a href="/support" onClick={() => setMobileMenuOpen(false)} className="text-left py-2 px-3 rounded hover:bg-stone-100 dark:hover:bg-slate-800/60 font-semibold text-[#0A6C74] dark:text-teal-300">Customer Support &amp; Tickets</a>
-
-              <div className="pt-3 border-t border-stone-200 flex flex-col space-y-2">
+              <div className="pt-2 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={handleBookingClick}
-                  className="w-full py-2.5 px-4 text-center font-bold text-sm bg-[#0A6C74] text-white rounded shadow-sm"
+                  className="w-full py-2.5 px-4 text-center font-bold text-sm bg-[#0F4C81] dark:bg-sky-500 text-white dark:text-[#07111C] rounded-lg"
                 >
                   {t('nav.bookExcursion')}
                 </button>
@@ -756,7 +709,7 @@ export const Header: React.FC<HeaderProps> = ({
                     setMobileMenuOpen(false);
                     if (onOpenMyBooking) onOpenMyBooking();
                   }}
-                  className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-stone-100 text-stone-800 rounded border border-stone-300"
+                  className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-[#F6F7F9] dark:bg-[#14263D] text-[#0A192F] dark:text-white rounded-lg border border-[#DCE2EA] dark:border-[#1E344E]"
                 >
                   {t('mobile.findBookingSubtitle')}
                 </button>
@@ -767,17 +720,17 @@ export const Header: React.FC<HeaderProps> = ({
                       setMobileMenuOpen(false);
                       onOpenHelpInquiry();
                     }}
-                    className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-[#0A6C74]/10 hover:bg-[#0A6C74]/20 text-[#0A6C74] rounded border border-[#0A6C74]/30 flex items-center justify-center space-x-2"
+                    className="w-full py-2.5 px-4 text-center font-semibold text-sm text-[#0F4C81] dark:text-sky-400 border border-[#DCE2EA] dark:border-[#1E344E] rounded-lg flex items-center justify-center gap-2"
                   >
-                    <HelpCircle className="w-4 h-4 text-[#0A6C74]" />
-                    <span>Require Help & Support</span>
+                    <HelpCircle className="w-4 h-4" />
+                    <span>Concierge &amp; Custom Help</span>
                   </button>
                 )}
                 <a
                   href="https://wa.me/201515212741"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded flex items-center justify-center space-x-2"
+                  className="w-full py-2.5 px-4 text-center font-semibold text-sm bg-[#0D7A5F] hover:bg-[#09624B] text-white rounded-lg flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>{t('mobile.contactWhatsApp')}</span>

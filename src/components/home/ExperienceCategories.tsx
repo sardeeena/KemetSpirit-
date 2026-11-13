@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Ship, 
-  Waves, 
-  Compass, 
-  Sun, 
-  Anchor, 
-  Landmark, 
+import {
+  Ship,
+  Waves,
+  Compass,
+  Sun,
+  Anchor,
+  Landmark,
   ArrowRight,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
 } from 'lucide-react';
 import { Category } from '../../types';
 import { getPublishedCategories, NEUTRAL_CATEGORY_PLACEHOLDER } from '../../services/tourService';
@@ -54,7 +54,6 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
     }
   }, [propCategories, fetchCategories]);
 
-  // Synchronize when admin updates categories in database
   useEffect(() => {
     const handleDataUpdated = () => {
       if (onRetry) {
@@ -84,41 +83,40 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
     switch (key) {
       case 'ship':
       case 'boat':
-        return <Ship className="w-5 h-5 text-white" />;
+        return <Ship className="w-4 h-4 text-[#E3B34C]" />;
       case 'waves':
       case 'snorkeling':
       case 'diving':
-        return <Waves className="w-5 h-5 text-white" />;
-      case 'compass':
-        return <Compass className="w-5 h-5 text-white" />;
+        return <Waves className="w-4 h-4 text-[#E3B34C]" />;
       case 'sun':
       case 'safari':
-        return <Sun className="w-5 h-5 text-white" />;
+        return <Sun className="w-4 h-4 text-[#E3B34C]" />;
       case 'anchor':
-        return <Anchor className="w-5 h-5 text-white" />;
+        return <Anchor className="w-4 h-4 text-[#E3B34C]" />;
       case 'landmark':
       case 'sightseeing':
-        return <Landmark className="w-5 h-5 text-white" />;
+        return <Landmark className="w-4 h-4 text-[#E3B34C]" />;
       default:
-        return <Compass className="w-5 h-5 text-white" />;
+        return <Compass className="w-4 h-4 text-[#E3B34C]" />;
     }
   };
 
   return (
-    <section id="categories-section" className="py-16 sm:py-24 bg-white dark:bg-[#0A1118] border-b border-[#E8E3DA] dark:border-slate-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        
-        {/* Section Header */}
+    <section
+      id="categories-section"
+      className="py-16 sm:py-24 bg-[#F6F7F9] dark:bg-[#07111C] border-b border-[#DCE2EA] dark:border-[#1E344E] transition-colors"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="max-w-2xl mb-12">
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#0A6C74] dark:text-[#60C3CC] mb-2">
-            <span className="w-5 h-0.5 bg-[#0A6C74] dark:bg-[#60C3CC] rounded-full"></span>
-            <span>Curated Marine & Desert Adventures</span>
-          </div>
-          <h2 className="font-display text-2xl sm:text-4xl text-[#0E1B2A] dark:text-white tracking-tight">
+          <span className="block text-[11px] font-bold uppercase tracking-[0.16em] text-[#B58428] dark:text-[#E3B34C] mb-2">
+            Curated Marine &amp; Desert Adventures
+          </span>
+          <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#0A192F] dark:text-white tracking-tight">
             Explore by Experience
           </h2>
-          <p className="text-stone-600 dark:text-slate-300 text-sm sm:text-base mt-2 leading-relaxed">
-            Whether you seek calm shallow turquoise lagoons, offshore dolphin reef encounters, or sunset quad biking across desert mountain canyons.
+          <p className="text-[#2D3F54] dark:text-slate-300 text-sm sm:text-base mt-2 leading-relaxed">
+            Calm lagoon crossings, open-reef dolphin encounters, certified PADI dives, and canyon desert expeditions across Egypt.
           </p>
         </div>
 
@@ -126,14 +124,13 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="experience-loading">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div 
-                key={i} 
-                className={`rounded-2xl border border-stone-200 dark:border-slate-800 bg-stone-100 dark:bg-slate-900/60 h-80 p-6 flex flex-col justify-end space-y-3 relative overflow-hidden select-none skeleton-delay-${i % 5}`}
+              <div
+                key={i}
+                className={`rounded-2xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] h-76 p-6 flex flex-col justify-end space-y-3 relative overflow-hidden select-none skeleton-delay-${i % 5}`}
               >
-                <div className={`w-11 h-11 rounded-xl bg-stone-200 dark:bg-slate-800 animate-shimmer skeleton-delay-${i % 5} mb-2`} />
-                <div className={`h-6 w-3/4 bg-stone-200 dark:bg-slate-800 rounded animate-shimmer skeleton-delay-${i % 5}`} />
-                <div className={`h-4 w-full bg-stone-200/80 dark:bg-slate-800/80 rounded animate-shimmer skeleton-delay-${i % 5}`} />
-                <div className={`h-4 w-1/2 bg-stone-200/80 dark:bg-slate-800/80 rounded animate-shimmer skeleton-delay-${i % 5}`} />
+                <div className={`h-6 w-3/4 bg-[#EEF1F5] dark:bg-[#14263D] rounded animate-shimmer skeleton-delay-${i % 5}`} />
+                <div className={`h-4 w-full bg-[#EEF1F5] dark:bg-[#14263D] rounded animate-shimmer skeleton-delay-${i % 5}`} />
+                <div className={`h-4 w-1/2 bg-[#EEF1F5] dark:bg-[#14263D] rounded animate-shimmer skeleton-delay-${i % 5}`} />
               </div>
             ))}
           </div>
@@ -141,16 +138,21 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
 
         {/* Error State */}
         {!isLoading && error && (
-          <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 p-8 text-center space-y-4 max-w-lg mx-auto" data-testid="experience-error">
-            <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
+          <div
+            className="rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-8 text-center space-y-4 max-w-lg mx-auto"
+            data-testid="experience-error"
+          >
+            <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
             <div>
-              <h3 className="text-base font-semibold text-stone-900 dark:text-white">Unable to Load Experiences</h3>
-              <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">{error}</p>
+              <h3 className="text-base font-semibold text-[#0A192F] dark:text-white">
+                Unable to Load Experiences
+              </h3>
+              <p className="text-xs text-[#5C6F84] dark:text-slate-400 mt-1">{error}</p>
             </div>
             <button
               type="button"
               onClick={handleRetry}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[#0A6C74] hover:bg-[#08565C] text-white rounded-lg text-xs font-semibold shadow transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:text-[#07111C] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Retry Loading Experiences</span>
@@ -160,10 +162,15 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
 
         {/* Empty State */}
         {!isLoading && !error && categories.length === 0 && (
-          <div className="rounded-2xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900/40 p-8 text-center space-y-2 max-w-md mx-auto" data-testid="experience-empty">
-            <Compass className="w-8 h-8 text-stone-400 dark:text-slate-500 mx-auto" />
-            <h3 className="text-sm font-semibold text-stone-800 dark:text-slate-200">No Excursion Categories Available</h3>
-            <p className="text-xs text-stone-500 dark:text-slate-400">
+          <div
+            className="rounded-2xl border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#0E1C2E] p-8 text-center space-y-2 max-w-md mx-auto"
+            data-testid="experience-empty"
+          >
+            <Compass className="w-8 h-8 text-[#5C6F84] dark:text-slate-400 mx-auto" />
+            <h3 className="text-sm font-semibold text-[#0A192F] dark:text-slate-200">
+              No Excursion Categories Available
+            </h3>
+            <p className="text-xs text-[#5C6F84] dark:text-slate-400">
               Excursion categories are currently being updated in our database. Please check back shortly.
             </p>
           </div>
@@ -175,43 +182,43 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
             {categories.map((cat, index) => (
               <motion.div
                 key={cat.id || cat.slug || index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.45, delay: index * 0.07 }}
-                whileHover={{ y: -6 }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
+                whileHover={{ y: -4 }}
                 onClick={() => onSelectCategory(cat.name)}
-                className="group relative rounded-2xl overflow-hidden border border-[#E8E3DA] dark:border-slate-700/80 bg-stone-100 dark:bg-stone-900 cursor-pointer h-80 flex flex-col justify-end p-6 hover:border-[#0A6C74]/70 hover:shadow-2xl transition-all duration-300"
+                className="group relative rounded-2xl overflow-hidden border border-[#DCE2EA] dark:border-[#1E344E] bg-[#0E1C2E] cursor-pointer h-76 flex flex-col justify-between p-6 hover:border-[#0F4C81]/70 dark:hover:border-sky-400/60 transition-all duration-200"
               >
-                {/* Background Photography with smooth slow zoom */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-600 ease-out group-hover:scale-106"
                   style={{ backgroundImage: `url(${cat.image || NEUTRAL_CATEGORY_PLACEHOLDER})` }}
                 />
-                
-                {/* Refined gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-900/60 to-black/20 group-hover:via-stone-900/40 transition-colors" />
 
-                {/* Category Card Details */}
-                <div className="relative z-10 space-y-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 group-hover:bg-[#0A6C74] transition-all">
-                      {getIcon(cat.iconName)}
-                    </div>
-                    <span className="text-[11px] font-semibold tracking-wider uppercase text-white/90 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md border border-white/10 font-mono">
-                      {cat.tourCount} {cat.tourCount === 1 ? 'Excursion' : 'Excursions'}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#07111C]/95 via-[#07111C]/50 to-[#07111C]/30 group-hover:via-[#07111C]/40 transition-colors" />
+
+                {/* Top row: Unboxed icon mark + tabular count */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[#E3B34C]">
+                    {getIcon(cat.iconName)}
+                    <span className="font-mono-num text-[11px] font-bold uppercase tracking-[0.14em] text-white/90">
+                      0{index + 1}
                     </span>
                   </div>
+                  <span className="font-mono-num text-[11px] font-semibold uppercase tracking-wider text-slate-200">
+                    {cat.tourCount} {cat.tourCount === 1 ? 'Excursion' : 'Excursions'}
+                  </span>
+                </div>
 
-                  <h3 className="font-display text-xl font-bold text-white group-hover:text-[#60C3CC] transition-colors flex items-center justify-between">
+                {/* Bottom Title & Summary */}
+                <div className="relative z-10 space-y-2">
+                  <h3 className="font-display text-xl font-semibold text-white group-hover:text-sky-300 transition-colors flex items-center justify-between gap-2">
                     <span>{cat.name}</span>
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all text-[#60C3CC]">
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#E3B34C] shrink-0 group-hover:translate-x-1 transition-transform" />
                   </h3>
 
                   {cat.description && (
-                    <p className="text-xs text-stone-300 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
                       {cat.description}
                     </p>
                   )}
@@ -220,7 +227,6 @@ export const ExperienceCategories: React.FC<ExperienceCategoriesProps> = ({
             ))}
           </div>
         )}
-
       </div>
     </section>
   );

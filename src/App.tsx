@@ -11,9 +11,6 @@ import { Hero } from './components/home/Hero';
 import { PopularTours } from './components/home/PopularTours';
 import { ExperienceCategories } from './components/home/ExperienceCategories';
 import { DestinationsSection } from './components/home/DestinationsSection';
-import { WhyChooseUs } from './components/home/WhyChooseUs';
-import { ReviewsSection } from './components/home/ReviewsSection';
-import { FinalCTA } from './components/home/FinalCTA';
 import { NotFoundPage } from './components/common/NotFoundPage';
 const ExcursionsPage = lazy(() => import('./pages/ExcursionsPage').then(m => ({ default: m.ExcursionsPage })));
 const TourDetailPage = lazy(() => import('./pages/TourDetailPage').then(m => ({ default: m.TourDetailPage })));
@@ -279,13 +276,22 @@ function MainApp() {
   // Active confirmed booking object for immediate view
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
 
-  // Search & Filter state passed from homepage search
+  // Search & Filter state passed from homepage / header search
   const [initialSearchFilter, setInitialSearchFilter] = useState<{
     destination: string;
     category: string;
-  }>({
-    destination: 'All',
-    category: 'All',
+    query?: string;
+    nonce?: number;
+  }>(() => {
+    const initialQ = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('q') || ''
+      : '';
+    return {
+      destination: 'All',
+      category: 'All',
+      query: initialQ,
+      nonce: 0,
+    };
   });
 
   // Load tours, destinations, and categories in parallel for sub-second homepage rendering
@@ -676,11 +682,24 @@ function MainApp() {
     currentDestination,
   ]);
 
-  // Handlers from Homepage
+  // Handlers from Header & Homepage
+  const handleHeaderSearch = (query: string) => {
+    const trimmed = query.trim();
+    setInitialSearchFilter({
+      destination: 'All',
+      category: 'All',
+      query: trimmed,
+      nonce: Date.now(),
+    });
+    navigate(trimmed ? `/excursions?q=${encodeURIComponent(trimmed)}` : '/excursions');
+  };
+
   const handleHeroSearch = (filters: { destination: string; category: string; date: string; guests: number }) => {
     setInitialSearchFilter({
       destination: filters.destination === 'All Destinations' ? 'All' : filters.destination,
       category: filters.category === 'All Activities' ? 'All' : filters.category,
+      query: '',
+      nonce: Date.now(),
     });
     navigate('/excursions');
   };
@@ -1501,6 +1520,8 @@ function MainApp() {
           isLoading={loadingTours}
           initialDestination={initialSearchFilter.destination}
           initialCategory={initialSearchFilter.category}
+          initialSearchQuery={initialSearchFilter.query}
+          initialSearchNonce={initialSearchFilter.nonce}
           destinations={liveDestinations}
           categories={liveCategories}
           onNavigateHome={() => navigate('/')}
@@ -1571,18 +1592,6 @@ function MainApp() {
             onRetry={refreshPublishedCategories}
             onSelectCategory={handleSelectHomeCategory}
           />
-
-          {/* Why Choose Us Trust Pillars */}
-          <WhyChooseUs />
-
-          {/* Reviews */}
-          <ReviewsSection />
-
-          {/* Final CTA */}
-          <FinalCTA
-            onExploreTours={() => navigate('/excursions')}
-            onOpenMyBooking={() => navigate('/my-booking')}
-          />
         </main>
       );
     }
@@ -1610,7 +1619,15 @@ function MainApp() {
         onCurrencyChange={setCurrentCurrency}
         onOpenMyBooking={() => navigate('/my-booking')}
         onNavigateHome={() => navigate('/')}
-        onNavigateExcursions={() => navigate('/excursions')}
+        onNavigateExcursions={() => {
+          setInitialSearchFilter({
+            destination: 'All',
+            category: 'All',
+            query: '',
+            nonce: Date.now(),
+          });
+          navigate('/excursions');
+        }}
         onNavigateBooking={() => navigate('/booking')}
         onNavigateLogin={() => navigate('/login')}
         onNavigateRegister={() => navigate('/register')}
@@ -1623,6 +1640,8 @@ function MainApp() {
           setHelpSelectedTour(null);
           setIsHelpInquiryOpen(true);
         }}
+        onSearch={handleHeaderSearch}
+        initialSearchQuery={currentPath === '/excursions' ? (searchParams.get('q') ?? initialSearchFilter.query ?? '') : ''}
       />
 
       {/* Main View Flow with Smooth Page Entrance */}

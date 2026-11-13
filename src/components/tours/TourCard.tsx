@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Star, Clock, MapPin, CheckCircle2, ArrowRight, Heart, Eye, Scale, Sparkles, Compass } from 'lucide-react';
+import { Star, ArrowRight, Heart, Eye, Scale, Compass } from 'lucide-react';
 import { Tour, CurrencyConfig } from '../../types';
 import { formatPrice } from '../../data/toursData';
 import { useWishlist } from '../../contexts/WishlistContext';
@@ -28,157 +28,160 @@ export const TourCard: React.FC<TourCardProps> = ({
   const compared = isCompared(tour.slug);
 
   return (
-    <motion.article 
-      whileHover={{ y: -6 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="bg-white rounded-2xl border border-[#E8E3DA] overflow-hidden flex flex-col hover:border-[#0A6C74]/50 hover:shadow-xl transition-all duration-300 group h-full relative"
+    <motion.article
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.22, ease: 'easeOut' }}
+      className="bg-white dark:bg-[#0E1C2E] rounded-2xl border border-[#DCE2EA] dark:border-[#1E344E] overflow-hidden flex flex-col hover:border-[#0F4C81]/60 dark:hover:border-sky-400/50 transition-colors duration-200 group h-full relative"
     >
-      {/* Photo with smooth zoom and vignette */}
-      <div 
-        className="tour-card-media relative overflow-hidden bg-stone-100 cursor-pointer shrink-0"
+      {/* Image Frame */}
+      <div
+        className="tour-card-media relative overflow-hidden bg-[#EEF1F5] dark:bg-[#14263D] cursor-pointer shrink-0"
         onClick={() => onViewTour(tour)}
       >
         {tour.primaryImage ? (
           <img
             src={tour.primaryImage}
             alt={tour.title}
-            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             loading="lazy"
             decoding="async"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-stone-200 text-stone-400">
-            <Compass className="w-8 h-8 mb-1 opacity-50 text-[#0A6C74]" />
-            <span className="text-[10px] font-medium tracking-wide uppercase">Photo Coming Soon</span>
+          <div className="w-full h-full flex flex-col items-center justify-center bg-[#EEF1F5] dark:bg-[#14263D] text-[#5C6F84] dark:text-slate-400">
+            <Compass className="w-7 h-7 mb-1 opacity-60 text-[#0F4C81] dark:text-sky-400" />
+            <span className="text-[10px] font-semibold tracking-widest uppercase">
+              Photo Coming Soon
+            </span>
           </div>
         )}
 
-        {/* Cinematic gradient vignette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#07111C]/65 via-transparent to-[#07111C]/20 pointer-events-none"
+          aria-hidden="true"
+        />
 
-        {/* Badge */}
+        {/* Editorial Top-Left Corner Flag (rectangular architectural tag, no pill) */}
         {tour.badge && (
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/95 dark:bg-[#0E1B2A]/90 backdrop-blur-md text-stone-900 dark:text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider uppercase border border-stone-200/60 dark:border-white/10 shadow-sm flex items-center space-x-1">
-            <Sparkles className="w-3 h-3 text-[#0A6C74] dark:text-[#60C3CC]" />
-            <span>{tour.badge}</span>
+          <div className="absolute top-3 left-3 bg-[#07111C]/85 text-[#E3B34C] text-[10px] font-bold px-2.5 py-1 rounded-md tracking-[0.14em] uppercase border border-white/10">
+            {tour.badge}
           </div>
         )}
 
-        {/* Quick View Button on Image Hover */}
+        {/* Quick View Hover Trigger */}
         {onQuickView && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onQuickView(tour);
             }}
-            className="absolute inset-0 m-auto w-32 h-10 rounded-full bg-white/95 text-stone-900 text-xs font-semibold shadow-xl flex items-center justify-center space-x-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white z-10 cursor-pointer"
+            className="hidden sm:flex absolute inset-0 m-auto w-32 h-9 rounded-lg bg-white/95 dark:bg-[#0E1C2E]/95 text-[#0A192F] dark:text-white text-xs font-semibold border border-[#DCE2EA] dark:border-[#1E344E] shadow-lg items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 cursor-pointer whitespace-nowrap"
           >
-            <Eye className="w-3.5 h-3.5 text-[#0A6C74]" />
+            <Eye className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
             <span>Quick View</span>
-          </motion.button>
+          </button>
         )}
 
-        {/* Wishlist Heart Button with Bouncy Tap Feedback */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.8 }}
+        {/* Wishlist Button */}
+        <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             toggleFavorite(tour.slug, tour.title);
           }}
-          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all duration-200 z-20 cursor-pointer ${
+          className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-lg backdrop-blur-sm flex items-center justify-center transition-colors z-20 cursor-pointer ${
             favorite
-              ? 'bg-rose-50 text-rose-600 shadow-md scale-105'
-              : 'bg-black/40 text-white hover:bg-white hover:text-stone-900'
+              ? 'bg-rose-50 text-rose-600 border border-rose-200'
+              : 'bg-[#07111C]/55 text-white hover:bg-white hover:text-[#0A192F]'
           }`}
           title={favorite ? 'Remove from saved' : 'Save to wishlist'}
           aria-label={favorite ? 'Remove from saved' : 'Save to wishlist'}
         >
           <Heart className={`w-4 h-4 ${favorite ? 'fill-current text-rose-600' : ''}`} />
-        </motion.button>
+        </button>
 
-        {/* Free Cancellation Tag */}
-        <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md text-emerald-900 text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center border border-emerald-200/50">
-          <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600 shrink-0" />
-          <span>Free Cancellation</span>
+        {/* Clean Bottom Image Readout */}
+        <div className="hidden sm:flex absolute bottom-2.5 left-3 right-3 items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-white/90">
+          <span>Free 24h Cancellation</span>
+          <span className="font-mono-num">{tour.durationHours}h</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-2.5 sm:p-5 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3 min-w-0">
-        <div>
+      <div className="p-3 sm:p-5 flex-1 flex flex-col justify-between gap-3 min-w-0">
+        <div className="space-y-2">
           {/* Unboxed Metadata Line */}
-          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[9px] sm:text-[11px] text-stone-500 font-medium mb-1.5 min-w-0">
-            <span className="flex items-center text-[#0A6C74] font-semibold">
-              <MapPin className="w-3 h-3 mr-1 shrink-0" />
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] sm:text-[11px] font-medium text-[#5C6F84] dark:text-slate-400 min-w-0">
+            <span className="text-[#0F4C81] dark:text-sky-400 font-semibold truncate">
               {tour.destination}
             </span>
-            <span aria-hidden="true" className="text-stone-300 hidden sm:inline">·</span>
-            <span className="truncate max-w-[120px] text-stone-600 hidden sm:inline">{tour.category}</span>
-            <span aria-hidden="true" className="text-stone-300 hidden sm:inline">·</span>
-            <span className="flex items-center text-stone-600 shrink-0">
-              <Clock className="w-3 h-3 mr-1 text-stone-400 shrink-0" />
-              {tour.durationHours}h
+            <span aria-hidden="true" className="hidden sm:inline text-[#DCE2EA] dark:text-slate-600">
+              ·
+            </span>
+            <span className="hidden sm:inline truncate max-w-[130px]">
+              {tour.category}
             </span>
           </div>
 
-          {/* Tour Title */}
-          <h3 
+          {/* Title */}
+          <h3
             onClick={() => onViewTour(tour)}
-            className="font-display text-xs sm:text-base font-bold text-[#0E1B2A] dark:text-white leading-snug line-clamp-3 sm:line-clamp-2 hover:text-[#0A6C74] dark:hover:text-[#2dd4bf] cursor-pointer mb-1.5 sm:mb-2 transition-colors sm:min-h-[44px]"
+            className="font-display text-sm sm:text-base font-semibold text-[#0A192F] dark:text-white leading-snug line-clamp-2 hover:text-[#0F4C81] dark:hover:text-sky-400 cursor-pointer transition-colors sm:min-h-[44px]"
             title={tour.title}
           >
             {tour.title}
           </h3>
 
-          {/* Short description */}
-          <p className="hidden sm:block text-xs text-stone-600 dark:text-slate-300 line-clamp-2 leading-relaxed mb-2 sm:mb-3 sm:min-h-[36px]">
+          {/* Short Description */}
+          <p className="hidden sm:block text-xs text-[#2D3F54] dark:text-slate-300 line-clamp-2 leading-relaxed sm:min-h-[38px]">
             {tour.shortDescription}
           </p>
 
-          {/* Rating */}
-          <div className="flex items-center space-x-1.5 mb-2 text-xs">
+          {/* Rating Line */}
+          <div className="flex items-center gap-1.5 text-xs pt-0.5">
             {tour.reviewCount > 0 ? (
               <>
-                <div className="flex text-amber-400">
+                <div className="flex text-[#B58428] dark:text-[#E3B34C]">
                   {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-3.5 h-3.5 ${i < Math.floor(tour.rating) ? 'fill-current' : 'fill-current opacity-25'}`} 
+                    <Star
+                      key={i}
+                      className={`w-3.5 h-3.5 ${
+                        i < Math.floor(tour.rating) ? 'fill-current' : 'fill-current opacity-20'
+                      }`}
                     />
                   ))}
                 </div>
-                <span className="font-bold text-stone-900 text-xs font-mono">{tour.rating.toFixed(1)}</span>
-                <span className="text-stone-400">·</span>
-                <span className="text-stone-500 text-[11px]">({tour.reviewCount} reviews)</span>
+                <span className="font-mono-num font-bold text-[#0A192F] dark:text-white">
+                  {tour.rating.toFixed(1)}
+                </span>
+                <span className="text-[#DCE2EA] dark:text-slate-600">·</span>
+                <span className="font-mono-num text-[#5C6F84] dark:text-slate-400 text-[11px]">
+                  {tour.reviewCount} reviews
+                </span>
               </>
             ) : (
-              <span className="text-stone-500 text-[11px] font-medium">New Excursion</span>
+              <span className="text-[#5C6F84] dark:text-slate-400 text-[11px] font-medium">
+                New Season Release
+              </span>
             )}
           </div>
 
-          {/* Pickup info */}
-          <div className="hidden sm:flex text-[11px] text-stone-500 items-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 shrink-0" />
-            <span className="truncate">{tour.pickupInfo}</span>
-          </div>
+          {/* Unboxed Pickup Line (No decorative dot) */}
+          <p className="hidden sm:block text-[11px] text-[#5C6F84] dark:text-slate-400 truncate">
+            {tour.pickupInfo}
+          </p>
         </div>
 
-        {/* Compare Checkbox & Pricing Row */}
-        <div className="pt-2 sm:pt-3 border-t border-stone-100 space-y-2 sm:space-y-2.5">
-          {/* Quick comparison toggle button */}
+        {/* Footer: Actions & Tabular Price */}
+        <div className="pt-3 border-t border-[#DCE2EA] dark:border-[#1E344E] space-y-2.5">
           <div className="hidden sm:flex items-center justify-between text-[11px]">
             <button
               type="button"
               onClick={() => toggleCompare(tour.slug, tour.title)}
-              className={`flex items-center space-x-1.5 font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer whitespace-nowrap ${
                 compared
-                  ? 'text-[#0A6C74] font-semibold'
-                  : 'text-stone-400 hover:text-stone-700'
+                  ? 'text-[#0F4C81] dark:text-sky-400 font-semibold'
+                  : 'text-[#5C6F84] dark:text-slate-400 hover:text-[#0A192F] dark:hover:text-white'
               }`}
             >
               <Scale className="w-3.5 h-3.5" />
@@ -189,43 +192,44 @@ export const TourCard: React.FC<TourCardProps> = ({
               <button
                 type="button"
                 onClick={() => onQuickView(tour)}
-                className="text-stone-400 hover:text-[#0A6C74] font-medium transition-colors cursor-pointer"
+                className="text-[#5C6F84] dark:text-slate-400 hover:text-[#0F4C81] dark:hover:text-sky-400 font-medium transition-colors cursor-pointer whitespace-nowrap"
               >
                 Quick details
               </button>
             )}
           </div>
 
-          {/* Pricing & Primary Action */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2.5">
             <div>
-              <span className="block text-[10px] uppercase font-bold text-stone-400 tracking-wider">From</span>
-              <div className="flex items-baseline space-x-1">
-                <span className="text-base sm:text-lg font-bold text-[#0E1B2A] font-mono">
+              <span className="block text-[10px] uppercase font-bold text-[#5C6F84] dark:text-slate-400 tracking-wider">
+                From
+              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="font-mono-num text-base sm:text-lg font-bold text-[#0A192F] dark:text-white">
                   {formatPrice(tour.priceEur, currency)}
                 </span>
-                <span className="text-[11px] text-stone-500 font-medium">/ person</span>
+                <span className="text-[11px] text-[#5C6F84] dark:text-slate-400">
+                  / guest
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-1.5 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => onViewTour(tour)}
-                className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold text-stone-700 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/80 rounded-xl transition-all cursor-pointer"
+                className="flex-1 sm:flex-none px-2.5 sm:px-3 py-2 text-[11px] sm:text-xs font-semibold text-[#2D3F54] dark:text-slate-200 hover:text-[#0A192F] dark:hover:text-white bg-[#EEF1F5] dark:bg-[#14263D] hover:bg-[#DCE2EA] dark:hover:bg-[#1E344E] rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
               >
                 Details
               </button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
+              <button
                 type="button"
                 onClick={() => (onBookNow ? onBookNow(tour) : onViewTour(tour))}
-                className="flex-1 sm:flex-none justify-center px-2 sm:px-3.5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold text-white bg-gradient-to-r from-[#0A6C74] to-[#0D838C] hover:from-[#08565C] hover:to-[#0A6C74] rounded-xl transition-all shadow-xs flex items-center space-x-1 group/btn cursor-pointer"
+                className="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 text-[11px] sm:text-xs font-semibold text-white bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:text-[#07111C] dark:hover:bg-sky-400 rounded-lg transition-colors flex items-center gap-1 group/btn cursor-pointer whitespace-nowrap shrink-0"
               >
                 <span>Book</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>

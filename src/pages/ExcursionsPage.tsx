@@ -53,6 +53,8 @@ interface ExcursionsPageProps {
   isLoading?: boolean;
   initialDestination?: string;
   initialCategory?: string;
+  initialSearchQuery?: string;
+  initialSearchNonce?: number;
   destinations?: Destination[];
   categories?: Category[];
   onNavigateHome: () => void;
@@ -66,6 +68,8 @@ export const ExcursionsPage: React.FC<ExcursionsPageProps> = ({
   isLoading = false,
   initialDestination,
   initialCategory,
+  initialSearchQuery,
+  initialSearchNonce,
   destinations,
   categories,
   onNavigateHome,
@@ -73,7 +77,16 @@ export const ExcursionsPage: React.FC<ExcursionsPageProps> = ({
   onBookTour,
 }) => {
   // Search bar state
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (initialSearchQuery !== undefined && initialSearchQuery !== '') {
+      return initialSearchQuery;
+    }
+    try {
+      return new URLSearchParams(window.location.search).get('q') || '';
+    } catch {
+      return '';
+    }
+  });
   const [destinationSelect, setDestinationSelect] = useState(initialDestination || 'All');
   const [activitySelect, setActivitySelect] = useState(initialCategory || 'All');
   const [date, setDate] = useState('');
@@ -94,6 +107,12 @@ export const ExcursionsPage: React.FC<ExcursionsPageProps> = ({
       setActivitySelect(initialCategory);
     }
   }, [initialDestination, initialCategory]);
+
+  useEffect(() => {
+    if (initialSearchQuery !== undefined) {
+      setSearchQuery(initialSearchQuery);
+    }
+  }, [initialSearchQuery, initialSearchNonce]);
 
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
@@ -143,12 +162,18 @@ export const ExcursionsPage: React.FC<ExcursionsPageProps> = ({
           url.searchParams.delete('durationPreset');
         }
 
+        if (searchQuery.trim()) {
+          url.searchParams.set('q', searchQuery.trim());
+        } else {
+          url.searchParams.delete('q');
+        }
+
         window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
       }
     } catch {
       // ignore
     }
-  }, [sidebarFilters]);
+  }, [sidebarFilters, searchQuery]);
 
   // Handle category tab change
   const handleCategoryTabSelect = (tab: string) => {
@@ -322,25 +347,28 @@ export const ExcursionsPage: React.FC<ExcursionsPageProps> = ({
   }, [destinationSelect, activitySelect, date, sidebarFilters, sortOption, filteredTours.length]);
 
   return (
-    <div className="w-full min-w-0 max-w-7xl mx-auto overflow-x-clip bg-[#FAF8F5] min-h-screen py-6 px-4 sm:px-6 lg:px-8">
-      
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        items={[
-          { label: 'Home', onClick: onNavigateHome },
-          { label: 'Excursions' },
-        ]}
-      />
+    <div className="w-full min-w-0 bg-[#F6F7F9] dark:bg-[#07111C] min-h-screen transition-colors">
+      <div className="w-full min-w-0 max-w-7xl mx-auto overflow-x-clip py-6 px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Home', onClick: onNavigateHome },
+            { label: 'Excursions' },
+          ]}
+        />
 
-      {/* Page Title & Supporting Text */}
-      <div className="py-4 border-b border-stone-200 mb-6">
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0E1B2A] tracking-tight">
-          Explore Our Excursions
-        </h1>
-        <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-2xl">
-          From coral reefs and island beaches to desert adventures, choose the experience that fits your holiday.
-        </p>
-      </div>
+        {/* Page Title & Supporting Text */}
+        <div className="py-5 border-b border-[#DCE2EA] dark:border-[#1E344E] mb-6">
+          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#B58428] dark:text-[#E3B34C] block mb-1.5">
+            Direct Licensed Fleet
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#0A192F] dark:text-white tracking-tight">
+            Explore Our Excursions
+          </h1>
+          <p className="text-xs sm:text-sm text-[#2D3F54] dark:text-slate-300 mt-1.5 max-w-2xl">
+            From coral reefs and offshore islands to desert canyon expeditions, choose the experience tailored to your stay.
+          </p>
+        </div>
 
       {/* Top Search & Filter Area */}
       <div className="mb-6">
@@ -403,7 +431,7 @@ export const ExcursionsPage: React.FC<ExcursionsPageProps> = ({
         </div>
 
       </div>
-
+      </div>
     </div>
   );
 };

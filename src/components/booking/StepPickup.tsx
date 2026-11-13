@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, CheckCircle2, ArrowRight, ArrowLeft, MessageCircle, HelpCircle, Building } from 'lucide-react';
+import { MapPin, ArrowRight, ArrowLeft, MessageCircle, HelpCircle, Building } from 'lucide-react';
 import { PickupLocation } from '../../types/booking';
 import { CurrencyConfig } from '../../types';
 import { STANDARD_PICKUP_LOCATIONS } from '../../data/bookingData';
@@ -28,83 +28,90 @@ export const StepPickup: React.FC<StepPickupProps> = ({
   locations,
 }) => {
   const pickupList = locations && locations.length > 0 ? locations : STANDARD_PICKUP_LOCATIONS;
-  const selectedLocation = pickupList.find((l) => l.id === selectedPickupId) || pickupList[0];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      
-      {/* Step Header */}
-      <div className="bg-white border border-[#E8E3DA] rounded-sm p-5 space-y-4">
+    <div className="space-y-6">
+      {/* Main Card */}
+      <div className="bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] rounded-2xl p-5 sm:p-6 space-y-5">
         <div>
-          <h2 className="font-display text-base sm:text-lg font-bold text-[#0E1B2A] flex items-center">
-            <MapPin className="w-4 h-4 mr-2 text-[#0A6C74]" />
-            Choose Your Hotel Transfer Area
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#B58428] dark:text-[#E3B34C] block mb-1">
+            Marina Transfer Logistics
+          </span>
+          <h2 className="font-display text-lg sm:text-xl font-semibold text-[#0A192F] dark:text-white flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-[#0F4C81] dark:text-sky-400 shrink-0" />
+            <span>Choose Your Hotel Transfer Area</span>
           </h2>
-          <p className="text-xs text-stone-600 mt-1">
-            We provide direct air-conditioned van transfers from hotel reception lobbies to the departure marina.
+          <p className="text-xs text-[#5C6F84] dark:text-slate-400 mt-1">
+            Air-conditioned vehicles collect guests directly from resort reception lobbies to our embarkation berth.
           </p>
         </div>
 
-        {/* Pickup Location Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        {/* Pickup Zone Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {pickupList.map((loc) => {
             const isSelected = selectedPickupId === loc.id;
             return (
-              <div
+              <button
                 key={loc.id}
+                type="button"
                 onClick={() => onSelectPickup(loc)}
-                className={`p-4 rounded-sm border cursor-pointer transition-all ${
+                className={`p-4 rounded-xl border text-left transition-colors cursor-pointer flex flex-col justify-between ${
                   isSelected
-                    ? 'border-[#0A6C74] bg-[#E8F3F4]/50 ring-1 ring-[#0A6C74]'
-                    : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50 bg-white'
+                    ? 'border-[#0F4C81] dark:border-sky-400 bg-[#0F4C81]/[0.06] dark:bg-sky-400/[0.08] ring-1 ring-[#0F4C81] dark:ring-sky-400'
+                    : 'border-[#DCE2EA] dark:border-[#1E344E] hover:border-[#0F4C81]/50 dark:hover:border-sky-400/50 bg-[#F6F7F9]/60 dark:bg-[#07111C]/60'
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-stone-900 text-xs sm:text-sm">
+                <div className="flex items-start justify-between gap-2 w-full">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-2">
+                      <span className="font-bold text-[#0A192F] dark:text-white text-xs sm:text-sm">
                         {loc.name}
                       </span>
                       {loc.isPopular && (
-                        <span className="text-[9px] uppercase font-bold text-[#0A6C74] bg-[#E8F3F4] px-1.5 py-0.5 rounded">
-                          Standard
+                        <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-[#B58428] dark:text-[#E3B34C]">
+                          · Standard
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-stone-500 block">
+                    <span className="text-[11px] text-[#5C6F84] dark:text-slate-400 block">
                       {loc.area}
                     </span>
                   </div>
 
-                  <div className="text-right shrink-0 ml-2">
+                  <div className="text-right shrink-0">
                     {loc.feeEurPerPerson === 0 ? (
-                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <span className="text-xs font-bold text-[#0D7A5F] dark:text-emerald-400">
                         Included
                       </span>
                     ) : (
-                      <span className="text-xs font-bold text-stone-800">
+                      <span className="font-mono-num text-xs font-bold text-[#0A192F] dark:text-white">
                         +{formatCurrencyAmount(loc.feeEurPerPerson, currency)}
-                        <span className="text-[10px] text-stone-500 font-normal"> / pers.</span>
+                        <span className="font-sans text-[10px] text-[#5C6F84] dark:text-slate-400 font-normal">
+                          {' '}/ pers.
+                        </span>
                       </span>
                     )}
                   </div>
                 </div>
 
                 {loc.note && (
-                  <p className="text-[10px] text-stone-600 mt-2 pt-2 border-t border-stone-200/60 leading-normal">
+                  <p className="text-[11px] text-[#5C6F84] dark:text-slate-400 mt-3 pt-2.5 border-t border-[#DCE2EA] dark:border-[#1E344E] leading-normal w-full">
                     {loc.note}
                   </p>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
 
         {/* Accommodation Name Input */}
-        <div className="pt-3 border-t border-stone-200 space-y-2">
-          <label htmlFor="hotel-input" className="block text-xs font-bold text-stone-900 flex items-center">
-            <Building className="w-3.5 h-3.5 mr-1.5 text-[#0A6C74]" />
-            Hotel name (Optional - can be provided later)
+        <div className="pt-4 border-t border-[#DCE2EA] dark:border-[#1E344E] space-y-2">
+          <label
+            htmlFor="hotel-input"
+            className="block text-xs font-bold text-[#0A192F] dark:text-white flex items-center gap-1.5"
+          >
+            <Building className="w-3.5 h-3.5 text-[#0F4C81] dark:text-sky-400" />
+            <span>Hotel Name (Optional — can be provided later)</span>
           </label>
           <input
             id="hotel-input"
@@ -112,21 +119,23 @@ export const StepPickup: React.FC<StepPickupProps> = ({
             value={hotelName}
             onChange={(e) => onHotelNameChange(e.target.value)}
             placeholder="e.g. Steigenberger ALDAU Beach, Sunrise Crystal Bay, etc."
-            className="w-full px-3.5 py-2.5 rounded border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#0A6C74] bg-stone-50/50"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCE2EA] dark:border-[#1E344E] text-xs sm:text-sm text-[#0A192F] dark:text-white placeholder:text-[#5C6F84] dark:placeholder:text-slate-500 bg-[#F6F7F9] dark:bg-[#07111C] focus:outline-none focus:ring-2 focus:ring-[#0F4C81] dark:focus:ring-sky-400"
           />
-          <span className="text-[11px] text-stone-500 block">
-            Not sure about your hotel yet? You can leave this empty and tell us on WhatsApp before your tour.
+          <span className="text-[11px] text-[#5C6F84] dark:text-slate-400 block">
+            Still finalizing your resort? Leave this blank and confirm via WhatsApp prior to sailing.
           </span>
         </div>
 
         {/* Unlisted Pickup Notice */}
-        <div className="p-3.5 bg-stone-50 border border-stone-200 rounded text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-start space-x-2.5">
-            <HelpCircle className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
+        <div className="pt-4 border-t border-[#DCE2EA] dark:border-[#1E344E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-start gap-2.5">
+            <HelpCircle className="w-4 h-4 text-[#0F4C81] dark:text-sky-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-stone-900 block">Pickup location not listed?</span>
-              <span className="text-stone-600 text-[11px]">
-                Staying in a private apartment or unlisted hotel? Contact us directly on WhatsApp.
+              <span className="font-bold text-[#0A192F] dark:text-white block">
+                Pickup location not listed?
+              </span>
+              <span className="text-[#5C6F84] dark:text-slate-400 text-[11px]">
+                Staying in a private villa or apartment outside the resort strip? Message dispatch directly.
               </span>
             </div>
           </div>
@@ -134,20 +143,20 @@ export const StepPickup: React.FC<StepPickupProps> = ({
             href={getWhatsAppSupportUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center text-xs font-semibold text-[#0A6C74] hover:text-[#08565C] bg-white px-3 py-1.5 border border-stone-300 rounded shadow-2xs self-start sm:self-auto shrink-0"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F4C81] dark:text-sky-400 hover:underline self-start sm:self-auto shrink-0 whitespace-nowrap"
           >
-            <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
-            <span>Contact Us</span>
+            <MessageCircle className="w-3.5 h-3.5 text-[#0D7A5F] dark:text-emerald-400" />
+            <span>Contact Dispatch</span>
           </a>
         </div>
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between gap-3 pt-1">
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-2.5 border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs sm:text-sm font-semibold rounded-sm transition-colors flex items-center space-x-1.5"
+          className="px-5 py-2.5 bg-white dark:bg-[#0E1C2E] border border-[#DCE2EA] dark:border-[#1E344E] hover:border-[#0F4C81]/60 dark:hover:border-sky-400/50 text-[#0A192F] dark:text-slate-200 text-xs sm:text-sm font-semibold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back</span>
@@ -156,13 +165,12 @@ export const StepPickup: React.FC<StepPickupProps> = ({
         <button
           type="button"
           onClick={onNext}
-          className="px-7 py-3 bg-[#0A6C74] hover:bg-[#08565C] text-white text-xs sm:text-sm font-semibold rounded-sm transition-colors shadow-xs flex items-center space-x-2"
+          className="px-7 py-3 bg-[#0F4C81] hover:bg-[#0B3A63] dark:bg-sky-500 dark:text-[#07111C] dark:hover:bg-sky-400 text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
         >
           <span>Continue</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
-
     </div>
   );
 };

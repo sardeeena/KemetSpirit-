@@ -1,79 +1,159 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { 
-  ShieldCheck, 
-  Award, 
-  Bus, 
-  Clock, 
-  Headphones, 
-  CheckCircle,
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  ShieldCheck,
+  Award,
+  Bus,
+  Clock,
+  Headphones,
   FileCheck2,
-  Sparkles
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { TRUST_PILLARS } from '../../data/toursData';
 
+function getPillarIcon(iconName?: string) {
+  switch (iconName) {
+    case 'ShieldCheck':
+      return ShieldCheck;
+    case 'Award':
+      return Award;
+    case 'Bus':
+      return Bus;
+    case 'Clock':
+      return Clock;
+    case 'Headphones':
+      return Headphones;
+    default:
+      return FileCheck2;
+  }
+}
+
 export const WhyChooseUs: React.FC = () => {
-  const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'ShieldCheck': return <ShieldCheck className="w-5 h-5 text-[#0A6C74]" />;
-      case 'Award': return <Award className="w-5 h-5 text-[#0A6C74]" />;
-      case 'Bus': return <Bus className="w-5 h-5 text-[#0A6C74]" />;
-      case 'Clock': return <Clock className="w-5 h-5 text-[#0A6C74]" />;
-      case 'Headphones': return <Headphones className="w-5 h-5 text-[#0A6C74]" />;
-      default: return <CheckCircle className="w-5 h-5 text-[#0A6C74]" />;
-    }
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused || TRUST_PILLARS.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % TRUST_PILLARS.length);
+    }, 4200);
+    return () => window.clearInterval(timer);
+  }, [isPaused]);
+
+  const activePillar = TRUST_PILLARS[activeIndex] || TRUST_PILLARS[0];
+  const PillarIcon = getPillarIcon(activePillar?.iconName);
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + TRUST_PILLARS.length) % TRUST_PILLARS.length);
+  };
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % TRUST_PILLARS.length);
   };
 
   return (
-    <section id="why-us-section" className="py-16 sm:py-24 bg-white dark:bg-[#0A1118] border-b border-[#E8E3DA] dark:border-slate-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        
-        {/* Header */}
-        <div className="max-w-3xl mb-12">
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#0A6C74] dark:text-[#60C3CC] mb-2">
-            <span className="w-5 h-0.5 bg-[#0A6C74] dark:bg-[#60C3CC] rounded-full"></span>
-            <span>Direct Licensed Fleet Operator</span>
+    <section
+      id="why-us-section"
+      className="py-12 sm:py-16 bg-white dark:bg-[#0B1624] border-b border-[#DCE2EA] dark:border-[#1E344E] transition-colors"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Section Editorial Intro */}
+          <div className="lg:col-span-6 space-y-3">
+            <span className="block text-[11px] font-bold uppercase tracking-[0.16em] text-[#B58428] dark:text-[#E3B34C]">
+              Direct Licensed Fleet Operator
+            </span>
+            <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#0A192F] dark:text-white tracking-tight">
+              Why Book Directly With KemetSpirit
+            </h2>
+            <p className="text-[#2D3F54] dark:text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+              We operate our own passenger yachts, speedboat charters, and resort transfer vans across Hurghada and El Gouna — delivering direct captain oversight and transparent local rates.
+            </p>
           </div>
-          <h2 className="font-display text-2xl sm:text-4xl text-[#0E1B2A] dark:text-white tracking-tight">
-            Why Book Directly With Us
-          </h2>
-          <p className="text-stone-600 dark:text-slate-300 text-sm sm:text-base mt-2 leading-relaxed">
-            We operate our own passenger yachts, speedboat charters, and hotel transfer fleet in Hurghada and El Gouna. You enjoy direct local captain support, transparent pricing, and zero middleman markups.
-          </p>
-        </div>
 
-        {/* Pillars Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {TRUST_PILLARS.map((pillar, idx) => (
-            <motion.div
-              key={pillar.id}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.45, delay: idx * 0.07 }}
-              whileHover={{ y: -5 }}
-              className="p-6 rounded-2xl border border-[#E8E3DA] dark:border-slate-800 bg-[#FAF8F5] dark:bg-[#132235] flex flex-col justify-between hover:border-[#0A6C74]/50 hover:bg-white dark:hover:bg-[#182C44] hover:shadow-xl transition-all duration-300 group"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#16283D] border border-[#E8E3DA] dark:border-slate-700 flex items-center justify-center mb-4 shadow-2xs group-hover:scale-110 group-hover:border-[#0A6C74]/40 transition-all">
-                  {getIcon(pillar.iconName)}
+          {/* Single Small Rotating Fade Card */}
+          <div
+            className="lg:col-span-6 flex justify-start lg:justify-end"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            <div className="w-full max-w-md rounded-2xl border border-[#DCE2EA] dark:border-[#1E344E] bg-[#F6F7F9] dark:bg-[#0E1C2E] p-6 shadow-xs">
+              <div className="min-h-[144px] flex flex-col justify-between">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activePillar.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.45, ease: 'easeInOut' }}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono-num text-xs font-bold text-[#B58428] dark:text-[#E3B34C] tracking-widest">
+                        0{activeIndex + 1} / 0{TRUST_PILLARS.length}
+                      </span>
+                      <div className="w-8 h-8 rounded-lg bg-white dark:bg-[#14263D] border border-[#DCE2EA] dark:border-[#1E344E] flex items-center justify-center">
+                        <PillarIcon className="w-4 h-4 text-[#0F4C81] dark:text-sky-400" />
+                      </div>
+                    </div>
+
+                    <h3 className="font-display text-lg font-semibold text-[#0A192F] dark:text-white">
+                      {activePillar.title}
+                    </h3>
+
+                    <p className="text-xs sm:text-[13px] text-[#2D3F54] dark:text-slate-300 leading-relaxed">
+                      {activePillar.description}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Compact Step Indicators & Controls */}
+              <div className="mt-5 pt-3.5 border-t border-[#DCE2EA] dark:border-[#1E344E] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5" role="tablist" aria-label="Direct booking highlights">
+                  {TRUST_PILLARS.map((pillar, idx) => {
+                    const isActive = idx === activeIndex;
+                    return (
+                      <button
+                        key={pillar.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        aria-label={pillar.title}
+                        onClick={() => setActiveIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                          isActive
+                            ? 'w-6 bg-[#0F4C81] dark:bg-sky-400'
+                            : 'w-2 bg-[#DCE2EA] dark:bg-[#1E344E] hover:bg-[#5C6F84] dark:hover:bg-slate-500'
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
-                <h3 className="font-display text-base font-bold text-[#0E1B2A] dark:text-white mb-2 group-hover:text-[#0A6C74] dark:group-hover:text-[#60C3CC] transition-colors">
-                  {pillar.title}
-                </h3>
-                <p className="text-xs text-stone-600 dark:text-slate-300 leading-relaxed">
-                  {pillar.description}
-                </p>
-              </div>
 
-              <div className="mt-5 pt-3.5 border-t border-stone-200/60 dark:border-slate-700/60 flex items-center text-[11px] text-[#0A6C74] dark:text-[#60C3CC] font-semibold">
-                <FileCheck2 className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                <span>Verified Direct Fleet Standard</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    aria-label="Previous highlight"
+                    className="p-1.5 rounded-lg border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#14263D] text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    aria-label="Next highlight"
+                    className="p-1.5 rounded-lg border border-[#DCE2EA] dark:border-[#1E344E] bg-white dark:bg-[#14263D] text-[#2D3F54] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </motion.div>
-          ))}
+            </div>
+          </div>
         </div>
-
       </div>
     </section>
   );

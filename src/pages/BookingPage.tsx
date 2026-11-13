@@ -3,7 +3,7 @@ import { recordVisitorEvent } from '../services/visitorAnalyticsService';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tour, CurrencyConfig } from '../types';
 import { GuestCounts, BookingExtra, CustomerInfo, Booking, PickupLocation } from '../types/booking';
-import { STANDARD_PICKUP_LOCATIONS, GLOBAL_BOOKING_EXTRAS } from '../data/bookingData';
+import { STANDARD_PICKUP_LOCATIONS } from '../data/bookingData';
 import { getPublishedPickupLocations, getPublishedTourExtras } from '../services/tourService';
 import { calculateBookingPrice } from '../services/pricingService';
 import { bookingRepository, generateBookingReference } from '../services/bookingRepository';
@@ -16,16 +16,16 @@ import { StepExtras } from '../components/booking/StepExtras';
 import { StepCustomerInfo } from '../components/booking/StepCustomerInfo';
 import { StepReview } from '../components/booking/StepReview';
 import { StepPayment } from '../components/booking/StepPayment';
-import { 
-  Calendar, 
-  MapPin, 
-  Sparkles, 
-  User, 
-  CheckSquare, 
-  Lock, 
-  Check, 
-  ChevronRight,
+import {
+  Calendar,
+  MapPin,
+  Sparkles,
+  User,
+  CheckSquare,
+  Lock,
+  Check,
   ShieldCheck,
+  ArrowLeft,
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 
@@ -38,12 +38,12 @@ interface BookingPageProps {
 }
 
 const STEPS = [
-  { id: 1, label: 'Date & Guests', icon: Calendar },
-  { id: 2, label: 'Pickup', icon: MapPin },
-  { id: 3, label: 'Extras', icon: Sparkles },
-  { id: 4, label: 'Guest Details', icon: User },
-  { id: 5, label: 'Review', icon: CheckSquare },
-  { id: 6, label: 'Payment', icon: Lock },
+  { id: 1, num: '01', label: 'Date & Guests', icon: Calendar },
+  { id: 2, num: '02', label: 'Pickup', icon: MapPin },
+  { id: 3, num: '03', label: 'Extras', icon: Sparkles },
+  { id: 4, num: '04', label: 'Guest Details', icon: User },
+  { id: 5, num: '05', label: 'Review', icon: CheckSquare },
+  { id: 6, num: '06', label: 'Payment', icon: Lock },
 ];
 
 export const BookingPage: React.FC<BookingPageProps> = ({
@@ -56,7 +56,7 @@ export const BookingPage: React.FC<BookingPageProps> = ({
   const { showToast } = useToast();
 
   // Find current tour or fallback
-  const [selectedTourSlug, setSelectedTourSlug] = useState<string>(
+  const [selectedTourSlug] = useState<string>(
     initialTourSlug || (tours.length > 0 ? tours[0].slug : '')
   );
 
@@ -92,14 +92,18 @@ export const BookingPage: React.FC<BookingPageProps> = ({
   }, [currentStep, currentTour?.slug]);
 
   const [date, setDate] = useState<string>(initialDraft.date || '');
-  const [selectedTourLanguage, setSelectedTourLanguage] = useState<string>(initialDraft.selectedTourLanguage || currentTour?.languages?.[0] || 'English');
+  const [selectedTourLanguage, setSelectedTourLanguage] = useState<string>(
+    initialDraft.selectedTourLanguage || currentTour?.languages?.[0] || 'English'
+  );
   const [guests, setGuests] = useState<GuestCounts>(initialDraft.guests);
   const [pickupLocationId, setPickupLocationId] = useState<string>(initialDraft.pickupLocationId || 'hurghada');
   const [hotelName, setHotelName] = useState<string>(initialDraft.hotelName || '');
   const [roomNumber, setRoomNumber] = useState<string>(initialDraft.roomNumber || '');
   const [selectedExtraIds, setSelectedExtraIds] = useState<string[]>(initialDraft.selectedExtraIds || []);
   const [customer, setCustomer] = useState<CustomerInfo>(initialDraft.customer);
-  const [paymentMethod, setPaymentMethod] = useState<'pay_at_pickup' | 'pay_online'>(initialDraft.paymentMethod || 'pay_at_pickup');
+  const [paymentMethod, setPaymentMethod] = useState<'pay_at_pickup' | 'pay_online'>(
+    initialDraft.paymentMethod || 'pay_at_pickup'
+  );
   const [couponCode, setCouponCode] = useState<string>(initialDraft.couponCode || '');
   const [checkoutIdempotencyKey, setCheckoutIdempotencyKey] = useState<string>(
     initialDraft.idempotencyKey || `idem_${crypto.randomUUID()}`
@@ -107,11 +111,12 @@ export const BookingPage: React.FC<BookingPageProps> = ({
   const lastDraftFingerprint = useRef<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState<boolean>(initialDraft.termsAccepted || false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isMobileSummaryExpanded, setIsMobileSummaryExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     const options = Array.from(new Set((currentTour?.languages || []).map((language) => language.trim()).filter(Boolean)));
     const supported = options.length > 0 ? options : ['English'];
-    setSelectedTourLanguage((current) => supported.includes(current) ? current : supported[0]);
+    setSelectedTourLanguage((current) => (supported.includes(current) ? current : supported[0]));
   }, [currentTour?.slug, currentTour?.languages?.join('|')]);
 
   // Dynamic database-backed pickup locations & extras
@@ -157,20 +162,37 @@ export const BookingPage: React.FC<BookingPageProps> = ({
     };
   }, [currentTour?.slug, currentTour?.id, currentTour?.destination]);
 
-  const draftFingerprint = useMemo(() => JSON.stringify({
-    tourSlug: currentTour?.slug,
-    date,
-    selectedTourLanguage,
-    guests,
-    pickupLocationId,
-    hotelName,
-    roomNumber,
-    selectedExtraIds,
-    extraQuantities,
-    customer,
-    paymentMethod,
-    couponCode,
-  }), [currentTour?.slug, date, guests, pickupLocationId, hotelName, roomNumber, selectedExtraIds, extraQuantities, customer, paymentMethod, couponCode]);
+  const draftFingerprint = useMemo(
+    () =>
+      JSON.stringify({
+        tourSlug: currentTour?.slug,
+        date,
+        selectedTourLanguage,
+        guests,
+        pickupLocationId,
+        hotelName,
+        roomNumber,
+        selectedExtraIds,
+        extraQuantities,
+        customer,
+        paymentMethod,
+        couponCode,
+      }),
+    [
+      currentTour?.slug,
+      date,
+      selectedTourLanguage,
+      guests,
+      pickupLocationId,
+      hotelName,
+      roomNumber,
+      selectedExtraIds,
+      extraQuantities,
+      customer,
+      paymentMethod,
+      couponCode,
+    ]
+  );
 
   useEffect(() => {
     if (lastDraftFingerprint.current === null) {
@@ -319,13 +341,14 @@ export const BookingPage: React.FC<BookingPageProps> = ({
         },
         extras: selectedExtras.map((e) => {
           const qty = extraQuantities[e.id] || 1;
-          const amountEur = e.pricingType === 'per_person'
-            ? e.priceEur * payingGuests * qty
-            : e.pricingType === 'per_adult'
-            ? e.priceEur * (guests.adults || 1) * qty
-            : e.pricingType === 'per_child'
-            ? e.priceEur * (guests.children || 0) * qty
-            : e.priceEur * qty;
+          const amountEur =
+            e.pricingType === 'per_person'
+              ? e.priceEur * payingGuests * qty
+              : e.pricingType === 'per_adult'
+              ? e.priceEur * (guests.adults || 1) * qty
+              : e.pricingType === 'per_child'
+              ? e.priceEur * (guests.children || 0) * qty
+              : e.priceEur * qty;
           return {
             extraId: e.id,
             name: e.name,
@@ -364,96 +387,112 @@ export const BookingPage: React.FC<BookingPageProps> = ({
   };
 
   return (
-    <div className="bg-[#FAF8F5] min-h-screen">
-      {/* Top Stepper Navigation */}
-      <div className="bg-white border-b border-[#E8E3DA] sticky top-16 z-30 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          
-          {/* Desktop Stepper */}
-          <div className="hidden md:flex items-center justify-between">
-            {STEPS.map((s, idx) => {
+    <div className="bg-[#F6F7F9] dark:bg-[#07111C] text-[#0A192F] dark:text-slate-100 min-h-screen transition-colors">
+      {/* Architectural Sticky Progress Rail */}
+      <div className="bg-white/95 dark:bg-[#0B1726]/95 backdrop-blur-md border-b border-[#DCE2EA] dark:border-[#1E344E] sticky top-16 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Desktop 6-Step Progress Bar */}
+          <nav aria-label="Booking progress" className="hidden md:grid grid-cols-6 gap-2">
+            {STEPS.map((s) => {
               const isCurrent = currentStep === s.id;
               const isCompleted = currentStep > s.id;
               return (
-                <div key={s.id} className="flex items-center flex-1 last:flex-none">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isCompleted) setCurrentStep(s.id);
-                    }}
-                    className={`flex items-center space-x-2 text-xs font-semibold py-1.5 px-2 rounded transition-all text-left w-full ${
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={!isCompleted && !isCurrent}
+                  onClick={() => {
+                    if (isCompleted) setCurrentStep(s.id);
+                  }}
+                  className={`relative flex items-center gap-2.5 py-3.5 px-2 text-left transition-colors whitespace-nowrap shrink-0 ${
+                    isCurrent
+                      ? 'text-[#0F4C81] dark:text-sky-400'
+                      : isCompleted
+                      ? 'text-[#0A192F] dark:text-slate-200 hover:text-[#0F4C81] dark:hover:text-sky-400 cursor-pointer'
+                      : 'text-[#5C6F84]/60 dark:text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <span
+                    className={`w-6 h-6 rounded-md flex items-center justify-center font-mono-num text-[11px] font-bold shrink-0 border transition-colors ${
                       isCurrent
-                        ? 'text-[#0A6C74] font-bold border-b-2 border-[#0A6C74]'
+                        ? 'bg-[#0F4C81] dark:bg-sky-500 border-[#0F4C81] dark:border-sky-500 text-white dark:text-[#07111C]'
                         : isCompleted
-                        ? 'text-stone-700 hover:text-stone-900 cursor-pointer'
-                        : 'text-stone-400 cursor-not-allowed'
+                        ? 'bg-[#0D7A5F]/10 dark:bg-emerald-500/15 border-[#0D7A5F]/40 dark:border-emerald-400/40 text-[#0D7A5F] dark:text-emerald-400'
+                        : 'bg-[#EEF1F5] dark:bg-[#14263D] border-[#DCE2EA] dark:border-[#1E344E] text-[#5C6F84] dark:text-slate-500'
                     }`}
                   >
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0 transition-colors ${
-                        isCurrent
-                          ? 'bg-[#0A6C74] text-white'
-                          : isCompleted
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-stone-200 text-stone-500'
-                      }`}
-                    >
-                      {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.id}
-                    </div>
-                    <span className="truncate">{s.label}</span>
-                  </button>
-                  {idx < STEPS.length - 1 && (
-                    <ChevronRight className="w-3.5 h-3.5 text-stone-300 mx-1 shrink-0" />
+                    {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : s.num}
+                  </span>
+                  <span className={`text-xs truncate ${isCurrent ? 'font-bold' : 'font-medium'}`}>
+                    {s.label}
+                  </span>
+                  {isCurrent && (
+                    <motion.span
+                      layoutId="booking-step-underline"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F4C81] dark:bg-sky-400"
+                    />
                   )}
-                </div>
+                </button>
               );
             })}
-          </div>
+          </nav>
 
-          {/* Mobile Step Progress Indicator */}
-          <div className="md:hidden flex items-center space-x-2 pt-1">
-            <div className="flex-1 bg-stone-200 h-1.5 rounded-full overflow-hidden">
+          {/* Mobile Step Progress */}
+          <div className="md:hidden py-3 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <span className="font-mono-num text-[10px] font-bold uppercase tracking-wider text-[#B58428] dark:text-[#E3B34C] block">
+                Step 0{currentStep} of 0{STEPS.length}
+              </span>
+              <span className="text-xs font-bold text-[#0A192F] dark:text-white truncate block">
+                {STEPS[currentStep - 1]?.label}
+              </span>
+            </div>
+            <div className="w-28 bg-[#DCE2EA] dark:bg-[#1E344E] h-1.5 rounded-full overflow-hidden shrink-0">
               <div
-                className="bg-[#0A6C74] h-full transition-all duration-300"
-                style={{ width: `${(currentStep / 6) * 100}%` }}
+                className="bg-[#0F4C81] dark:bg-sky-400 h-full transition-all duration-300"
+                style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
               />
             </div>
-            <span className="text-xs font-bold text-stone-800 shrink-0">
-              {STEPS[currentStep - 1]?.label} ({currentStep}/6)
-            </span>
           </div>
-
         </div>
       </div>
 
       {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        
-        {/* Header Title */}
-        <div className="mb-6">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0A6C74]">
-            Direct Vessel Reservation
-          </span>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#0E1B2A] tracking-tight">
-            Reserve Your Excursion
-          </h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-10">
+        {/* Editorial Header Title */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 mb-7 border-b border-[#DCE2EA] dark:border-[#1E344E]">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#B58428] dark:text-[#E3B34C] block mb-1.5">
+              Direct Vessel Reservation
+            </span>
+            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#0A192F] dark:text-white tracking-tight leading-tight">
+              Reserve Your Excursion
+            </h1>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigate('excursions')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5C6F84] dark:text-slate-400 hover:text-[#0F4C81] dark:hover:text-sky-400 transition-colors cursor-pointer whitespace-nowrap shrink-0 self-start sm:self-auto"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Browse other excursions</span>
+          </button>
         </div>
 
-        {/* 2-Column Responsive Layout */}
+        {/* 12-Column Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column: Active Step Flow (7 cols on desktop) */}
+          {/* Left Column: Active Step Flow */}
           <div className="lg:col-span-7 xl:col-span-8 min-w-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.22, ease: 'easeOut' }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
                 className="space-y-6"
               >
-                {/* Step 1: Date & Guests */}
                 {currentStep === 1 && (
                   <StepDateGuests
                     tour={currentTour}
@@ -468,7 +507,6 @@ export const BookingPage: React.FC<BookingPageProps> = ({
                   />
                 )}
 
-                {/* Step 2: Pickup Location */}
                 {currentStep === 2 && (
                   <StepPickup
                     selectedPickupId={pickupLocationId}
@@ -482,7 +520,6 @@ export const BookingPage: React.FC<BookingPageProps> = ({
                   />
                 )}
 
-                {/* Step 3: Optional Extras */}
                 {currentStep === 3 && (
                   <StepExtras
                     selectedExtraIds={selectedExtraIds}
@@ -496,7 +533,6 @@ export const BookingPage: React.FC<BookingPageProps> = ({
                   />
                 )}
 
-                {/* Step 4: Lead Customer Contact */}
                 {currentStep === 4 && (
                   <StepCustomerInfo
                     customer={customer}
@@ -507,7 +543,6 @@ export const BookingPage: React.FC<BookingPageProps> = ({
                   />
                 )}
 
-                {/* Step 5: Review Booking */}
                 {currentStep === 5 && (
                   <StepReview
                     tour={currentTour}
@@ -526,7 +561,6 @@ export const BookingPage: React.FC<BookingPageProps> = ({
                   />
                 )}
 
-                {/* Step 6: Payment Method & Terms */}
                 {currentStep === 6 && (
                   <StepPayment
                     pricing={pricing}
@@ -546,8 +580,8 @@ export const BookingPage: React.FC<BookingPageProps> = ({
             </AnimatePresence>
           </div>
 
-          {/* Right Column: Sticky Booking Summary (5 cols on desktop) */}
-          <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-36 space-y-4">
+          {/* Right Column: Sticky Booking Summary */}
+          <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-32 space-y-4">
             <BookingSummary
               tour={currentTour}
               date={date}
@@ -558,22 +592,23 @@ export const BookingPage: React.FC<BookingPageProps> = ({
               selectedExtras={selectedExtras}
               pricing={pricing}
               currency={currency}
+              collapsibleMobile
+              isMobileExpanded={isMobileSummaryExpanded}
+              onToggleMobileExpand={() => setIsMobileSummaryExpanded((prev) => !prev)}
             />
 
-            {/* Direct Operator Security Box */}
-            <div className="p-4 bg-white rounded-lg border border-[#E8E3DA] text-xs space-y-2">
-              <div className="flex items-center text-emerald-700 font-bold">
-                <ShieldCheck className="w-4 h-4 mr-1.5" />
+            {/* Direct Operator Guarantee */}
+            <div className="p-4 bg-white dark:bg-[#0E1C2E] rounded-2xl border border-[#DCE2EA] dark:border-[#1E344E] text-xs space-y-1.5">
+              <div className="flex items-center gap-2 text-[#0D7A5F] dark:text-emerald-400 font-bold">
+                <ShieldCheck className="w-4 h-4 shrink-0" />
                 <span>Operator Direct Guarantee</span>
               </div>
-              <p className="text-stone-600 text-[11px] leading-relaxed">
-                Reservations are transmitted directly to the marine fleet operations center in Hurghada. Free cancellation up to 24 hours prior.
+              <p className="text-[#5C6F84] dark:text-slate-400 text-[11px] leading-relaxed">
+                Reservations transmit directly to our marine fleet operations desk in Hurghada. Free cancellation up to 24 hours prior to departure.
               </p>
             </div>
           </div>
-
         </div>
-
       </div>
     </div>
   );
