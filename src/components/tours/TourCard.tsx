@@ -102,7 +102,7 @@ export const TourCard: React.FC<TourCardProps> = ({
 
         {/* Clean Bottom Image Readout */}
         <div className="hidden sm:flex absolute bottom-2.5 left-3 right-3 items-center justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-white/90">
-          <span>Free 24h Cancellation</span>
+          <span>Review Cancellation Terms</span>
           <span className="font-mono-num">{tour.durationHours}h</span>
         </div>
       </div>
