@@ -13,10 +13,10 @@ export const APP_CONFIG = {
   LEGAL_NAME: 'KemetSpirit S.A.E.',
   
   // WhatsApp support number (Pier Desk Hotline)
-  WHATSAPP_NUMBER: '+20 151 5212741',
-  WHATSAPP_DISPLAY: '+20 151 5212741',
+  WHATSAPP_NUMBER: '+20 102 212 4589',
+  WHATSAPP_DISPLAY: '+20 102 212 4589',
   
-  SUPPORT_PHONE: '+20 151 5212741',
+  SUPPORT_PHONE: '+20 102 212 4589',
   SUPPORT_EMAIL: 'reservations@kemetspirit.com',
   OFFICE_LOCATION: 'Berth B-14, Hurghada Marina, Red Sea Governorate, Egypt',
 
