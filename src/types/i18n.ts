@@ -1,4 +1,6 @@
-export type LanguageCode = 'en' | 'de' | 'ru' | 'it' | 'ro';
+export const SUPPORTED_LANGUAGE_CODES = ['en', 'de', 'ru', 'it', 'ro'] as const;
+
+export type LanguageCode = (typeof SUPPORTED_LANGUAGE_CODES)[number];
 
 export interface LanguageConfig {
   code: LanguageCode;
