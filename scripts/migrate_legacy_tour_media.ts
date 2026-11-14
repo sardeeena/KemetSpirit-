@@ -10,7 +10,9 @@ const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 if (!SUPABASE_URL || !SERVICE_KEY) {
   throw new Error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY) for the KemetSpirit project.');
 }
-let configuredProjectHost = '';\ntry { configuredProjectHost = new URL(SUPABASE_URL).hostname; } catch { /* rejected below */ }\nif (configuredProjectHost !== 'mktrtoctcjyokclpdeui.supabase.co') {
+let configuredProjectHost = '';
+try { configuredProjectHost = new URL(SUPABASE_URL).hostname; } catch { /* rejected below */ }
+if (configuredProjectHost !== 'mktrtoctcjyokclpdeui.supabase.co') {
   throw new Error('Refusing to migrate media: SUPABASE_URL is not the approved KemetSpirit project.');
 }
 
