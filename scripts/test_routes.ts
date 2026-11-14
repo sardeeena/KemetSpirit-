@@ -168,6 +168,12 @@ async function runRouteTests() {
   assert('client SEO branding', seoServiceSource.includes("const SITE_NAME = 'KemetSpirit'") && seoServiceSource.includes('https://kemetspirit.com/logo.webp'), 'Client SEO service uses only KemetSpirit identity and canonical domain');
   assert('support portal noindex', seoSource.includes("'/support'") && seoSource.includes('robotsIndex: false') && seoSource.includes('robotsFollow: false'), 'Customer support portal is explicitly noindex and nofollow');
   const serverSource = fs.readFileSync(path.join(process.cwd(), 'server.ts'), 'utf8');
+  assert(
+    'server public SEO rendering prefers the browser publishable key',
+    serverSource.includes("const rawUserSupabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;"),
+    'Server-rendered public SEO queries use the same KemetSpirit publishable key as the browser before considering a separate server anon key'
+  );
+
   assert('server experiences SEO rendering', serverSource.includes("path === '/experiences'") && serverSource.includes("pageKind = 'experiences'"), 'Server returns indexable route-specific HTML for /experiences');
   assert(
     'server booking API uses the language-aware atomic RPC',
