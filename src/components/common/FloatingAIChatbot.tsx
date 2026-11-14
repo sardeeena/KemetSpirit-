@@ -195,7 +195,7 @@ Tell me who you're traveling with, your resort area (Hurghada, El Gouna, Makadi 
                       Captain Farouk
                     </h3>
                     <p className="text-[11px] text-slate-300">
-                      Red Sea Excursion Concierge · Hurghada Marina
+                      Egyptian Coast Concierge · Hurghada Marina
                     </p>
                   </div>
                 </div>
