@@ -15,27 +15,27 @@ ALTER TABLE public.visitor_sessions
 
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visitor_sessions_location_source_check') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.visitor_sessions'::regclass AND conname = 'visitor_sessions_location_source_check') THEN
     ALTER TABLE public.visitor_sessions
       ADD CONSTRAINT visitor_sessions_location_source_check
       CHECK (location_source IS NULL OR location_source = 'ip_approximate');
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visitor_sessions_language_preferences_limit_check') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.visitor_sessions'::regclass AND conname = 'visitor_sessions_language_preferences_limit_check') THEN
     ALTER TABLE public.visitor_sessions
       ADD CONSTRAINT visitor_sessions_language_preferences_limit_check
       CHECK (cardinality(language_preferences) <= 8);
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visitor_sessions_locale_format_check') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.visitor_sessions'::regclass AND conname = 'visitor_sessions_locale_format_check') THEN
     ALTER TABLE public.visitor_sessions
       ADD CONSTRAINT visitor_sessions_locale_format_check
       CHECK (locale IS NULL OR locale ~ '^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$');
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visitor_sessions_viewport_bucket_check') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.visitor_sessions'::regclass AND conname = 'visitor_sessions_viewport_bucket_check') THEN
     ALTER TABLE public.visitor_sessions
       ADD CONSTRAINT visitor_sessions_viewport_bucket_check
       CHECK (viewport_bucket IS NULL OR viewport_bucket IN ('compact','standard','wide'));
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visitor_sessions_platform_family_check') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.visitor_sessions'::regclass AND conname = 'visitor_sessions_platform_family_check') THEN
     ALTER TABLE public.visitor_sessions
       ADD CONSTRAINT visitor_sessions_platform_family_check
       CHECK (platform_family IS NULL OR platform_family IN ('Windows','macOS','Linux','Android','iOS','ChromeOS','Other'));
