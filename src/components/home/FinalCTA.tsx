@@ -41,7 +41,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onExploreTours, onOpenMyBook
                 </button>
 
                 <a
-                  href="https://wa.me/201515212741"
+                  href="https://wa.me/201022124589"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3.5 bg-[#0D7A5F] hover:bg-[#09624B] text-white text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer whitespace-nowrap"
