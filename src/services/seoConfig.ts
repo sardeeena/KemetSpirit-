@@ -313,6 +313,26 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
     ),
   }),
 
+  '/about': (origin) => ({
+    title: 'About KemetSpirit | Red Sea Excursions in Hurghada',
+    description: 'Learn about KemetSpirit and explore published boat trips, island excursions and Red Sea experiences from Hurghada, Egypt.',
+    canonicalUrl: `${origin}/about`,
+    ogType: 'website',
+    ogImage: SEO_DEFAULTS.DEFAULT_OG_IMAGE,
+    twitterCard: 'summary_large_image',
+    robotsIndex: false,
+    robotsFollow: true,
+  }),
+
+  '/blog': (origin) => ({
+    title: 'KemetSpirit Travel Journal | Red Sea Guides & Egypt Travel Stories',
+    description: 'Discover Red Sea travel guides, local insights and practical inspiration for exploring Hurghada and Egypt.',
+    canonicalUrl: `${origin}/blog`,
+    ogType: 'website',
+    ogImage: SEO_DEFAULTS.DEFAULT_OG_IMAGE,
+    twitterCard: 'summary_large_image',
+  }),
+
   '/support': (origin) => ({
     title: 'Customer Support & Tickets | KemetSpirit',
     description:
