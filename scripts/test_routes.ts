@@ -175,6 +175,35 @@ async function runRouteTests() {
     'Server-side booking creation persists and validates the selected tour language'
   );
 
+
+  const i18nSource = fs.readFileSync(path.join(process.cwd(), 'src/types/i18n.ts'), 'utf8');
+  assert(
+    'API and frontend language list share one source',
+    serverSource.includes('supportedLanguages: [...SUPPORTED_LANGUAGE_CODES]') &&
+      i18nSource.includes("SUPPORTED_LANGUAGE_CODES = ['en', 'de', 'ru', 'it', 'ro']"),
+    'The public API advertises exactly the five implemented frontend languages'
+  );
+  assert(
+    'MCP search matches title and descriptions',
+    serverSource.includes('tour.short_description, tour.description') &&
+      serverSource.includes('searchableText.includes(normalizedQuery)'),
+    'Read-only MCP search filters published excursions by title, short description and full description'
+  );
+  assert(
+    'Sitemap excludes noindex metadata',
+    !serverSource.includes("  '/blog',\n  '/about',") &&
+      serverSource.includes(".from('seo_metadata')") &&
+      serverSource.includes(".eq('robots_index', false)"),
+    'Sitemap removes page, tour and destination URLs explicitly marked noindex'
+  );
+  assert(
+    'Empty travel journal is noindex',
+    serverSource.includes('if (posts.length === 0)') &&
+      serverSource.includes('noindex = true;') &&
+      serverSource.includes("app.get('/llms-full.txt'"),
+    'Empty blog index is excluded from search and an expanded AI-readable index is served'
+  );
+
   console.log('Step 5: Verifying server-side private SPA route allowlist...');
   assert(
     'server private support route fallback',
