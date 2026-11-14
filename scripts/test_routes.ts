@@ -214,6 +214,13 @@ async function runRouteTests() {
     'Client-side hydration keeps empty journals and missing articles out of the index, and indexes real published content'
   );
 
+  assert(
+    'Public journal loads the full published article set',
+    blogPageSource.includes('getPublishedBlogPosts(100)') &&
+      serverSource.includes(".order('published_at', { ascending: false }).limit(100);"),
+    'Client and server-rendered blog indexes load up to 100 published articles instead of silently truncating at 30'
+  );
+
   console.log('Step 5: Verifying server-side private SPA route allowlist...');
   assert(
     'server private support route fallback',
