@@ -16,7 +16,7 @@ After this PR is merged and the migration is applied, run the one-time media tra
 Run:
 
 ```bash
-npm install
+npm ci
 npm run migrate:tour-media
 ```
 
