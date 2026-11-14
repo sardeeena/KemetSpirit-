@@ -204,6 +204,16 @@ async function runRouteTests() {
     'Empty blog index is excluded from search and an expanded AI-readable index is served'
   );
 
+
+  const blogPageSource = fs.readFileSync(path.join(process.cwd(), 'src/pages/BlogPage.tsx'), 'utf8');
+  assert(
+    'Client blog robots state follows published articles',
+    appSource.includes('robotsIndex: false') &&
+      blogPageSource.includes("posts.length > 0 ? 'index, follow, max-image-preview:large' : 'noindex, follow'") &&
+      blogPageSource.includes("article ? 'index, follow, max-image-preview:large' : 'noindex, follow'"),
+    'Client-side hydration keeps empty journals and missing articles out of the index, and indexes real published content'
+  );
+
   console.log('Step 5: Verifying server-side private SPA route allowlist...');
   assert(
     'server private support route fallback',
