@@ -58,19 +58,30 @@ SELECT ok(NOT EXISTS (
     )
 ), 'all public business tables have row-change audit triggers');
 
-CREATE TEMP TABLE audit_redaction_probe (id uuid, email text, status text, metadata jsonb);
+CREATE TEMP TABLE audit_redaction_probe (
+  id uuid, email text, status text, metadata jsonb, name text,
+  assigned_to uuid, country text, location text
+);
 CREATE TRIGGER trg_capture_business_audit_probe
   AFTER INSERT OR UPDATE OR DELETE ON pg_temp.audit_redaction_probe
   FOR EACH ROW EXECUTE FUNCTION private.capture_business_audit();
-INSERT INTO pg_temp.audit_redaction_probe (id, email, status, metadata)
-VALUES (gen_random_uuid(), 'private@example.invalid', 'active', '{"private":"do not retain"}'::jsonb);
+INSERT INTO pg_temp.audit_redaction_probe
+  (id, email, status, metadata, name, assigned_to, country, location)
+VALUES (
+  gen_random_uuid(), 'private@example.invalid', 'active', '{"private":"do not retain"}'::jsonb,
+  'Private Person', gen_random_uuid(), 'Egypt', 'Private pickup point'
+);
 SELECT ok(EXISTS (
   SELECT 1 FROM public.audit_logs
   WHERE entity_type = 'audit_redaction_probe'
     AND new_data ? 'status'
     AND NOT (new_data ? 'email')
     AND NOT (new_data ? 'metadata')
-), 'audit snapshots retain safe status fields and redact contact and JSON metadata');
+    AND NOT (new_data ? 'name')
+    AND NOT (new_data ? 'assigned_to')
+    AND NOT (new_data ? 'country')
+    AND NOT (new_data ? 'location')
+), 'audit snapshots retain safe status fields and redact personal names, assignments, location and JSON metadata');
 
 SELECT ok(has_function_privilege('service_role', 'public.erase_visitor_analytics(text,uuid,uuid)', 'EXECUTE'), 'server service role can execute atomic analytics erasure');
 SELECT ok(NOT has_function_privilege('authenticated', 'public.erase_visitor_analytics(text,uuid,uuid)', 'EXECUTE'), 'authenticated users cannot execute analytics erasure directly');
