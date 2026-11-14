@@ -1105,7 +1105,11 @@ app.post('/api/bookings/create', rateLimit(10, 60_000), async (req: Authenticate
     paymentMethod = 'pay_at_pickup',
     specialRequests,
     couponCode,
+    tourLanguage: requestedTourLanguage,
   } = req.body || {};
+  const tourLanguage = typeof requestedTourLanguage === 'string'
+    ? requestedTourLanguage.trim()
+    : '';
 
   if (!serverSupabase || !SUPABASE_URL || !SUPABASE_USER_KEY) {
     return res.status(503).json({
@@ -1165,7 +1169,7 @@ app.post('/api/bookings/create', rateLimit(10, 60_000), async (req: Authenticate
       global: authorization ? { headers: { Authorization: authorization } } : undefined,
     });
 
-    const { data, error } = await requestClient.rpc('create_booking_atomic', {
+    const { data, error } = await requestClient.rpc('create_booking_atomic_with_language', {
       p_tour_identifier: tourSlug.trim(),
       p_booking_date: date,
       p_adult_count: adults,
@@ -1188,6 +1192,7 @@ app.post('/api/bookings/create', rateLimit(10, 60_000), async (req: Authenticate
       p_payment_method: paymentMethod,
       p_special_requests: specialRequests || null,
       p_idempotency_key: idempotencyKey,
+      p_tour_language: tourLanguage || null,
     });
 
     if (error) {
@@ -2300,16 +2305,17 @@ app.post('/api/visitor/consent', rateLimit(20, 60_000), async (req: Authenticate
       }).eq('id', sessionId);
       if (updateError) throw updateError;
     } else if (sessionId) {
-      await serverSupabase.from('visitor_sessions').update({
-        analytics_consent: false,
-        marketing_consent: false,
-        ended_at: new Date().toISOString(),
-        consent_updated_at: new Date().toISOString(),
-      }).eq('id', sessionId);
+      // Withdrawing analytics consent ends this session and removes its
+      // event history. The consent evidence is retained separately below.
+      const { error: deleteSessionError } = await serverSupabase
+        .from('visitor_sessions')
+        .delete()
+        .eq('id', sessionId);
+      if (deleteSessionError) throw deleteSessionError;
     }
     if (req.body?.source === 'session_restore') return res.status(200).json({ success: true, restored: true });
     const { error } = await serverSupabase.from('visitor_consent_records').insert({
-      visitor_session_id: sessionId,
+      visitor_session_id: analytics ? sessionId : null,
       visitor_id: analytics ? visitorId : null,
       user_id: req.user?.id || null,
       necessary: true,
@@ -2383,7 +2389,8 @@ app.get('/api/admin/technical/visitors/events', rateLimit(60, 60_000), async (re
   const limit = Math.min(500, Math.max(1, Number.parseInt(String(req.query.limit || '200'), 10) || 200));
   try {
     let query = serverSupabase.from('visitor_events')
-      .select('id,occurred_at,session_id,user_id,event_name,page_path,page_title,duration_ms,event_data')
+      .select('id,occurred_at,session_id,user_id,event_name,page_path,page_title,duration_ms,event_data,visitor_sessions!inner(analytics_consent)')
+      .eq('visitor_sessions.analytics_consent', true)
       .order('occurred_at', { ascending: false }).limit(limit);
     if (typeof req.query.event_name === 'string' && VISITOR_EVENT_NAMES.has(req.query.event_name)) query = query.eq('event_name', req.query.event_name);
     if (typeof req.query.session_id === 'string' && UUID_PATTERN.test(req.query.session_id)) query = query.eq('session_id', req.query.session_id);

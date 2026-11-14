@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(14);
+SELECT plan(15);
 
 SELECT ok(
   EXISTS (
@@ -109,6 +109,17 @@ SELECT set_config(
   TRUE
 );
 
+SELECT set_config(
+  'pgtap.language_guest_replay_result',
+  public.create_booking_atomic_with_language(
+    'pgtap-language-test-tour', CURRENT_DATE + 40, 1, 0, 0,
+    'Guest', 'Language', 'pgtap-language-guest@example.test', '+201000000010', 'Egypt',
+    NULL, NULL, NULL, '[]'::jsonb, NULL, 'pay_at_pickup', NULL,
+    'idem_pgtap_language_guest_0001', 'English'
+  )::text,
+  TRUE
+);
+
 RESET ROLE;
 SET LOCAL request.jwt.claims = '{}';
 SET LOCAL request.jwt.claim.role = 'postgres';
@@ -126,6 +137,16 @@ SELECT ok(
       AND tour_language = 'Arabic'
   ),
   'guest booking stores its selected language in the original booking row'
+);
+
+SELECT ok(
+  NOT (current_setting('pgtap.language_guest_replay_result')::jsonb->>'success')::boolean
+  AND EXISTS (
+    SELECT 1 FROM public.bookings
+    WHERE id = (current_setting('pgtap.language_guest_result')::jsonb->>'bookingId')::uuid
+      AND idempotency_payload->>'tour_language' = 'arabic'
+  ),
+  'reusing a booking idempotency key with a different tour language is rejected'
 );
 
 SELECT set_config('pgtap.language_auth_user_id', gen_random_uuid()::text, TRUE);

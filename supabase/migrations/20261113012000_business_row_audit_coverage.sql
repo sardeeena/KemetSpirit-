@@ -18,7 +18,7 @@ DECLARE
   v_new jsonb := NULL;
   v_row jsonb;
   v_entity_id text;
-  v_sensitive_pattern text := '(email|phone|whatsapp|address|full.?name|first.?name|last.?name|customer.?name|guest.?name|user.?name|message|description|body|content|subject|notes?|password|token|secret|api.?key|authorization|headers|payload|raw.?payload|metadata|ip.?address|user.?agent|cookies?|room.?number|hotel|special.?requests?|contact|recipient|sender|customer|guest|user.?id|payment.?details?|card.?number|cvv|ssn|passport|document|birth.?date|dob|attachments?|avatar|settings|config|form.?data|custom.?data|preferences|private.?data|(^ip$|_ip$|^ip_)|(^text$|_text$|^text_)|comment|question|answer|reason|actor.?id|profile.?id|visitor.?id|session.?id)';
+  v_sensitive_pattern text := '(email|phone|whatsapp|address|full.?name|first.?name|last.?name|customer.?name|guest.?name|user.?name|message|description|body|content|subject|notes?|password|token|secret|api.?key|authorization|headers|payload|raw.?payload|metadata|ip.?address|user.?agent|cookies?|room.?number|hotel|special.?requests?|contact|recipient|sender|customer|guest|user.?id|payment.?details?|card.?number|cvv|ssn|passport|document|birth.?date|dob|attachments?|avatar|settings|config|form.?data|custom.?data|preferences|private.?data|(^ip$|_ip$|^ip_)|(^text$|_text$|^text_)|comment|question|answer|reason|actor.?id|profile.?id|visitor.?id|session.?id|name$|actor|assigned.?by|assigned.?to|owner.?id|lead.?id|staff.?id|driver.?id|country|region|city|location|postal|zip|latitude|longitude|coordinates|(lat|lng|lon)$|file.?name|alt.?text|(^|_)(created|updated|modified|deleted)_by$)';
 BEGIN
   IF TG_OP = 'UPDATE' AND to_jsonb(OLD) = to_jsonb(NEW) THEN
     RETURN NEW;
@@ -205,18 +205,18 @@ AS $function$
         GROUP BY visitor_id HAVING count(*) > 1
       ) AS returning_visitors
     ),
-    'events', (SELECT count(*) FROM public.visitor_events WHERE occurred_at >= p_since),
+    'events', (SELECT count(*) FROM public.visitor_events e JOIN public.visitor_sessions s ON s.id = e.session_id WHERE e.occurred_at >= p_since AND s.analytics_consent = true),
     'guestSessions', (SELECT count(*) FROM public.visitor_sessions WHERE started_at >= p_since AND analytics_consent = true AND user_id IS NULL),
     'signedInSessions', (SELECT count(*) FROM public.visitor_sessions WHERE started_at >= p_since AND analytics_consent = true AND user_id IS NOT NULL),
     'consentRecords', (SELECT count(*) FROM public.visitor_consent_records WHERE recorded_at >= p_since),
     'analyticsOptIns', (SELECT count(*) FROM public.visitor_consent_records WHERE recorded_at >= p_since AND analytics = true),
     'marketingOptIns', (SELECT count(*) FROM public.visitor_consent_records WHERE recorded_at >= p_since AND marketing = true),
     'bookingFunnel', jsonb_build_object(
-      'started', (SELECT count(*) FROM public.visitor_events WHERE occurred_at >= p_since AND event_name = 'booking_started'),
-      'stepsCompleted', (SELECT count(*) FROM public.visitor_events WHERE occurred_at >= p_since AND event_name = 'booking_step_completed'),
-      'submitted', (SELECT count(*) FROM public.visitor_events WHERE occurred_at >= p_since AND event_name = 'booking_submitted'),
-      'confirmed', (SELECT count(*) FROM public.visitor_events WHERE occurred_at >= p_since AND event_name = 'booking_confirmed'),
-      'cancellationRequests', (SELECT count(*) FROM public.visitor_events WHERE occurred_at >= p_since AND event_name = 'booking_cancellation_requested')
+      'started', (SELECT count(*) FROM public.visitor_events e JOIN public.visitor_sessions s ON s.id = e.session_id WHERE e.occurred_at >= p_since AND e.event_name = 'booking_started' AND s.analytics_consent = true),
+      'stepsCompleted', (SELECT count(*) FROM public.visitor_events e JOIN public.visitor_sessions s ON s.id = e.session_id WHERE e.occurred_at >= p_since AND e.event_name = 'booking_step_completed' AND s.analytics_consent = true),
+      'submitted', (SELECT count(*) FROM public.visitor_events e JOIN public.visitor_sessions s ON s.id = e.session_id WHERE e.occurred_at >= p_since AND e.event_name = 'booking_submitted' AND s.analytics_consent = true),
+      'confirmed', (SELECT count(*) FROM public.visitor_events e JOIN public.visitor_sessions s ON s.id = e.session_id WHERE e.occurred_at >= p_since AND e.event_name = 'booking_confirmed' AND s.analytics_consent = true),
+      'cancellationRequests', (SELECT count(*) FROM public.visitor_events e JOIN public.visitor_sessions s ON s.id = e.session_id WHERE e.occurred_at >= p_since AND e.event_name = 'booking_cancellation_requested' AND s.analytics_consent = true)
     )
   );
 $function$;

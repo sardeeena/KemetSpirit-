@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(20);
+SELECT plan(22);
 
 SELECT ok((SELECT relrowsecurity FROM pg_class WHERE oid = 'public.visitor_sessions'::regclass), 'visitor_sessions has RLS enabled');
 SELECT ok((SELECT relrowsecurity FROM pg_class WHERE oid = 'public.visitor_events'::regclass), 'visitor_events has RLS enabled');
@@ -25,6 +25,55 @@ SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 
 SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'visitor_analytics_settings' AND column_name = 'audit_log_retention_days'), 'business audit retention is configurable');
 SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'visitor_sessions' AND column_name = 'utm_term'), 'UTM search term attribution is available');
 SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'visitor_sessions' AND column_name = 'utm_content'), 'UTM content attribution is available');
+
+-- Withdrawn-consent sessions remain in the audit history but must not contribute
+-- to visitor-event or booking-funnel analytics.
+WITH sessions AS (
+  INSERT INTO public.visitor_sessions (id, visitor_id, analytics_consent)
+  VALUES
+    (gen_random_uuid(), gen_random_uuid(), true),
+    (gen_random_uuid(), gen_random_uuid(), false)
+  RETURNING id, analytics_consent
+)
+INSERT INTO public.visitor_events (session_id, event_name)
+SELECT id, 'booking_started' FROM sessions;
+
+SELECT ok(
+  (public.get_visitor_analytics_overview(now() - interval '1 day')->>'events')::integer = 1
+  AND (public.get_visitor_analytics_overview(now() - interval '1 day')->'bookingFunnel'->>'started')::integer = 1,
+  'visitor event and funnel metrics exclude sessions whose analytics consent is withdrawn'
+);
+
+-- Withdrawal deletes the session and cascades its events while preserving the
+-- minimal consent evidence with its optional session/visitor references cleared.
+WITH withdrawn AS (
+  INSERT INTO public.visitor_sessions (id, visitor_id, analytics_consent)
+  VALUES (gen_random_uuid(), gen_random_uuid(), true)
+  RETURNING id
+), event_row AS (
+  INSERT INTO public.visitor_events (session_id, event_name)
+  SELECT id, 'page_view' FROM withdrawn
+  RETURNING session_id
+), consent_row AS (
+  INSERT INTO public.visitor_consent_records
+    (visitor_session_id, visitor_id, necessary, analytics, marketing, consent_version, consent_source)
+  SELECT id, NULL, true, true, false, '2', 'privacy_settings' FROM withdrawn
+  RETURNING id, visitor_session_id
+)
+SELECT set_config('pgtap.withdrawn_session_id', (SELECT visitor_session_id::text FROM consent_row), TRUE),
+       set_config('pgtap.withdrawn_consent_id', (SELECT id::text FROM consent_row), TRUE);
+
+DELETE FROM public.visitor_sessions
+WHERE id = current_setting('pgtap.withdrawn_session_id')::uuid;
+
+SELECT ok(
+  NOT EXISTS (SELECT 1 FROM public.visitor_events WHERE session_id = current_setting('pgtap.withdrawn_session_id')::uuid)
+  AND EXISTS (SELECT 1 FROM public.visitor_consent_records
+              WHERE id = current_setting('pgtap.withdrawn_consent_id')::uuid
+                AND visitor_session_id IS NULL AND visitor_id IS NULL
+                AND consent_source = 'privacy_settings' AND analytics = true),
+  'withdrawal removes session events but retains minimal consent evidence without visitor/session identifiers'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
