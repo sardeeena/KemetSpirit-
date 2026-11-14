@@ -16,7 +16,7 @@ INSERT INTO public.communication_templates
 VALUES
 ('booking_confirmation', 'Booking Confirmation', 'Email', 'Booking Confirmation: {{tour_name}} (Ref: {{booking_reference}})', 'Dear {{customer_name}},
 
-Thank you for booking with Awesome Adventure Tours. Your reservation for {{tour_name}} on {{tour_date}} has been confirmed.
+Thank you for booking with KemetSpirit. Your reservation for {{tour_name}} on {{tour_date}} has been confirmed.
 
 Booking Reference: {{booking_reference}}
 Total Amount: {{amount}}
@@ -24,7 +24,7 @@ Balance Due: {{balance_due}}
 Pickup Time: {{pickup_time}}
 
 Warm regards,
-Awesome Adventure Tours Concierge Desk', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","amount","balance_due"]'::jsonb, true),
+KemetSpirit Concierge Desk', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","amount","balance_due"]'::jsonb, true),
 ('booking_update', 'Booking Update', 'Email', 'Reservation Update: {{tour_name}} (Ref: {{booking_reference}})', 'Dear {{customer_name}},
 
 Your reservation for {{tour_name}} (Ref: {{booking_reference}}) has been updated.
@@ -34,15 +34,15 @@ Pickup Time: {{pickup_time}}
 Remaining Balance Due: {{balance_due}}
 
 Best regards,
-Awesome Adventure Tours Dispatch Team', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","balance_due"]'::jsonb, true),
-('payment_confirmation', 'Payment Confirmation', 'Email', 'Payment Confirmation: {{booking_reference}} - Awesome Adventure Tours', 'Dear {{customer_name}},
+KemetSpirit Dispatch Team', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","balance_due"]'::jsonb, true),
+('payment_confirmation', 'Payment Confirmation', 'Email', 'Payment Confirmation: {{booking_reference}} - KemetSpirit', 'Dear {{customer_name}},
 
 We have successfully processed your payment of {{amount}} for booking {{booking_reference}} ({{tour_name}}).
 
 Remaining Balance Due: {{balance_due}}
 
 Thank you,
-Awesome Adventure Tours Finance', '["customer_name","booking_reference","tour_name","amount","balance_due"]'::jsonb, true),
+KemetSpirit Finance', '["customer_name","booking_reference","tour_name","amount","balance_due"]'::jsonb, true),
 ('payment_reminder', 'Payment Reminder', 'Email', 'Payment Reminder: Balance Due for {{tour_name}}', 'Dear {{customer_name}},
 
 This is a friendly reminder regarding your upcoming departure for {{tour_name}} on {{tour_date}}.
@@ -51,7 +51,7 @@ Outstanding Balance Due: {{balance_due}}
 Scheduled Hotel Pickup: {{pickup_time}}
 
 Best regards,
-Awesome Adventure Tours', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","balance_due"]'::jsonb, true),
+KemetSpirit', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","balance_due"]'::jsonb, true),
 ('cancellation', 'Booking Cancellation', 'Email', 'Cancellation Confirmation: {{booking_reference}} - {{tour_name}}', 'Dear {{customer_name}},
 
 Your reservation {{booking_reference}} for {{tour_name}} on {{tour_date}} has been cancelled.
@@ -59,15 +59,15 @@ Your reservation {{booking_reference}} for {{tour_name}} on {{tour_date}} has be
 Our team will contact you if a refund is applicable.
 
 Warm regards,
-Awesome Adventure Tours Guest Support', '["customer_name","booking_reference","tour_name","tour_date"]'::jsonb, true),
-('refund', 'Refund Notification', 'Email', 'Refund Processed: {{booking_reference}} - Awesome Adventure Tours', 'Dear {{customer_name}},
+KemetSpirit Guest Support', '["customer_name","booking_reference","tour_name","tour_date"]'::jsonb, true),
+('refund', 'Refund Notification', 'Email', 'Refund Processed: {{booking_reference}} - KemetSpirit', 'Dear {{customer_name}},
 
 A refund has been approved and processed for booking {{booking_reference}} ({{tour_name}}).
 
 Refund Amount: {{amount}}
 
 Sincerely,
-Awesome Adventure Tours Finance', '["customer_name","booking_reference","tour_name","amount"]'::jsonb, true),
+KemetSpirit Finance', '["customer_name","booking_reference","tour_name","amount"]'::jsonb, true),
 ('pickup_reminder', 'Pickup Reminder', 'Email', 'Hotel Pickup Alert for Tomorrow: {{tour_name}}', 'Hello {{customer_name}},
 
 We look forward to welcoming you tomorrow for {{tour_name}}.
@@ -85,35 +85,35 @@ Scheduled Pickup Time: {{pickup_time}}
 Remaining Balance Due: {{balance_due}}
 
 We look forward to welcoming you.', '["customer_name","booking_reference","tour_name","tour_date","pickup_time","balance_due"]'::jsonb, true),
-('inquiry_response', 'Inquiry Response', 'Email', 'Regarding Your Inquiry - Awesome Adventure Tours', 'Dear {{customer_name}},
+('inquiry_response', 'Inquiry Response', 'Email', 'Regarding Your Inquiry - KemetSpirit', 'Dear {{customer_name}},
 
-Thank you for your interest in Awesome Adventure Tours. Our team is reviewing your inquiry and will be pleased to assist.
+Thank you for your interest in KemetSpirit. Our team is reviewing your inquiry and will be pleased to assist.
 
 Best regards,
-Awesome Adventure Tours Guest Experience', '["customer_name"]'::jsonb, true),
+KemetSpirit Guest Experience', '["customer_name"]'::jsonb, true),
 ('follow_up', 'Customer Follow-up', 'Email', 'Your Red Sea Holiday Concierge Check-in', 'Dear {{customer_name}},
 
 We hope you are enjoying your stay in the Red Sea region. Our team is available to help arrange your next adventure.
 
 Best regards,
-Awesome Adventure Tours VIP Concierge', '["customer_name"]'::jsonb, true),
-('welcome', 'Welcome to Awesome Adventure Tours', 'Email', 'Welcome to Awesome Adventure Tours, {{customer_name}}!', 'Dear {{customer_name}},
+KemetSpirit VIP Concierge', '["customer_name"]'::jsonb, true),
+('welcome', 'Welcome to KemetSpirit', 'Email', 'Welcome to KemetSpirit, {{customer_name}}!', 'Dear {{customer_name}},
 
-Welcome to Awesome Adventure Tours. We are delighted to help you discover the Egyptian Red Sea.
+Welcome to KemetSpirit. We are delighted to help you discover the Egyptian Red Sea.
 
-Explore our curated tours: https://awesomeadventure.tours/excursions
+Explore our curated tours: https://kemetspirit.com/excursions
 
 Warm regards,
-Awesome Adventure Tours Guest Relations', '["customer_name"]'::jsonb, true),
+KemetSpirit Guest Relations', '["customer_name"]'::jsonb, true),
 ('review_request', 'Review Request', 'Email', 'How was your experience on {{tour_name}}?', 'Dear {{customer_name}},
 
 We hope you had a fantastic voyage on {{tour_name}}. Your feedback means a lot to our local team.
 
-Review Link: https://awesomeadventure.tours/review?ref={{booking_reference}}
+Review Link: https://kemetspirit.com/review?ref={{booking_reference}}
 
 Thank you for sailing with us,
-Awesome Adventure Tours', '["customer_name","tour_name","booking_reference"]'::jsonb, true),
-('newsletter_welcome', 'Newsletter Welcome', 'Email', 'Welcome to Awesome Adventure Tours — your 15% voucher', 'Thank you for subscribing to Awesome Adventure Tours. Your 15% voucher code is {{discount_code}}. Use it when enquiring about your next excursion.
+KemetSpirit', '["customer_name","tour_name","booking_reference"]'::jsonb, true),
+('newsletter_welcome', 'Newsletter Welcome', 'Email', 'Welcome to KemetSpirit — your 15% voucher', 'Thank you for subscribing to KemetSpirit. Your 15% voucher code is {{discount_code}}. Use it when enquiring about your next excursion.
 
 You can unsubscribe at any time: {{unsubscribe_url}}', '["discount_code","unsubscribe_url"]'::jsonb, true),
 ('ticket_created', 'Support Ticket Received', 'Email', 'We received your support request {{ticket_reference}}', 'Hello {{customer_name}},
