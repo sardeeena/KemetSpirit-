@@ -43,14 +43,17 @@ jobs:
           node --check public/sw.js
           node -e 'JSON.parse(require("fs").readFileSync("public/manifest.webmanifest", "utf8")); console.log("PWA manifest JSON is valid")'
 
-      - name: Enforce canonical website branding
-        run: npm run test:brand-identity
-
       - name: Type-check
         run: npm run lint
 
       - name: Build production assets and server
         run: npm run build
+
+      - name: Verify generated server and contact identity
+        run: |
+          npm run test:brand-identity
+          npm run test:contact-identity
+          if grep -qi 'cyifhjqqvtiguitrziqs' server.js; then echo 'Generated server references a retired Supabase project'; exit 1; fi
 
       - name: Verify communication provider security and validation
         run: npm run test:comm
