@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF,
   isExpectedKemetSpiritSupabaseUrl,
+  resolveKemetSpiritSupabaseUrl,
 } from '../src/lib/supabaseProjectGuard';
 
 const kemetSpiritUrl = `https://${EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF}.supabase.co`;
@@ -18,5 +19,18 @@ assert.equal(isExpectedKemetSpiritSupabaseUrl(kemetSpiritUrl, true), true, 'deve
 assert.equal(isExpectedKemetSpiritSupabaseUrl(awesomeAdventureUrl, true), true, 'development may use a separate hosted test project');
 assert.equal(isExpectedKemetSpiritSupabaseUrl('http://127.0.0.1:54321', true), true, 'development accepts local Supabase');
 assert.equal(isExpectedKemetSpiritSupabaseUrl('not-a-url', true), false, 'invalid URLs are rejected');
+
+const malformedServerUrlFallback = resolveKemetSpiritSupabaseUrl(
+  'mktrtoctcjyokclpdeui.supabase.co',
+  kemetSpiritUrl
+);
+assert.equal(malformedServerUrlFallback.url, kemetSpiritUrl, 'a malformed server URL falls back to a valid KemetSpirit Vite URL');
+assert.ok(malformedServerUrlFallback.warning, 'the malformed primary URL is reported as a warning');
+
+const wrongProjectPrimary = resolveKemetSpiritSupabaseUrl(awesomeAdventureUrl, kemetSpiritUrl);
+assert.equal(wrongProjectPrimary.url, null, 'a valid URL for another project is rejected without fallback');
+
+const invalidFallback = resolveKemetSpiritSupabaseUrl('not-a-url', 'also-not-a-url');
+assert.equal(invalidFallback.url, null, 'invalid primary and fallback URLs are rejected');
 
 console.log('Supabase project guard checks passed.');
