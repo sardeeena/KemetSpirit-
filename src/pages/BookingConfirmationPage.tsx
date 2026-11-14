@@ -134,7 +134,7 @@ export const BookingConfirmationPage: React.FC<BookingConfirmationPageProps> = (
             </div>
             <div className="text-right text-xs text-slate-700">
               <p className="font-mono font-bold text-sm text-[#0F4C81]">REF: {booking.bookingReference}</p>
-              <p className="text-[11px] text-slate-500">24/7 Support: +20 151 5212741</p>
+              <p className="text-[11px] text-slate-500">24/7 Support: +20 102 2124589</p>
             </div>
           </div>
 
@@ -302,7 +302,7 @@ export const BookingConfirmationPage: React.FC<BookingConfirmationPageProps> = (
                 <strong className="text-[#0A192F] dark:text-white">Meeting point:</strong> Please wait in your main hotel lobby 10 minutes before your scheduled pickup.
               </li>
               <li>
-                <strong className="text-[#0A192F] dark:text-white">24/7 Operations Desk:</strong> <span className="font-mono-num">+20 151 5212741</span>
+                <strong className="text-[#0A192F] dark:text-white">24/7 Operations Desk:</strong> <span className="font-mono-num">+20 102 2124589</span>
               </li>
             </ul>
           </div>

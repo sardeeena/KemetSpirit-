@@ -320,7 +320,7 @@ export const MyBookingPage: React.FC<MyBookingPageProps> = ({
                 </div>
                 <div className="text-right text-xs text-stone-700">
                   <p className="font-mono font-bold text-sm text-[#0A6C74]">REF: {booking.bookingReference}</p>
-                  <p className="text-[11px] text-stone-500">24/7 Support: +20 151 5212741</p>
+                  <p className="text-[11px] text-stone-500">24/7 Support: +20 102 2124589</p>
                 </div>
               </div>
 

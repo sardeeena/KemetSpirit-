@@ -229,13 +229,13 @@ export const seoService = {
         seller: {
           '@type': 'TravelAgency',
           name: SITE_NAME,
-          telephone: '+201515212741',
+          telephone: '+201022124589',
         },
       },
       provider: {
         '@type': 'TravelAgency',
         name: SITE_NAME,
-        telephone: '+201515212741',
+        telephone: '+201022124589',
         url: origin,
       },
       itinerary: {
@@ -359,7 +359,7 @@ export const seoService = {
       alternateName: 'KemetSpirit',
       description: DEFAULT_DESCRIPTION,
       url: origin,
-      telephone: '+201515212741',
+      telephone: '+201022124589',
       priceRange: '€€',
       currenciesAccepted: 'EUR, USD, GBP, EGP',
       paymentAccepted: 'Cash, Credit Card, Pay at Pickup',

@@ -5,6 +5,7 @@ const ROOT = process.cwd();
 const SCAN_ROOTS = [
   'src',
   'server.ts',
+  'server.js',
   'public',
   'scripts',
   'index.html',
