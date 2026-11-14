@@ -3972,7 +3972,7 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
   } else if (path === '/blog') {
     pageKind = 'blog-index';
     noindex = true;
-    nofollow = true;
+    nofollow = false;
     seoEntityType = 'page';
     seoIdentifier = 'blog';
     seoIdentifierIsPageSlug = true;
