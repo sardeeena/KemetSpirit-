@@ -136,7 +136,7 @@ const SUPABASE_URL = supabaseConfig.url;
 const SUPABASE_KEY = supabaseConfig.key;
 const SUPABASE_KEY_TYPE = supabaseConfig.keyType;
 // Public key for user-scoped requests. Never run guest/customer RPCs with a service-role key.
-const rawUserSupabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const rawUserSupabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 const SUPABASE_USER_KEY = isSupabasePublishableKey(rawUserSupabaseKey) ? rawUserSupabaseKey!.trim() : null;
 
 let serverSupabase: SupabaseClient | null = null;
