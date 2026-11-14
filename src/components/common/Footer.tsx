@@ -53,8 +53,8 @@ export const Footer: React.FC<FooterProps> = ({
             <Phone className="w-4 h-4 text-[#E3B34C] shrink-0 mt-0.5" />
             <div>
               <span className="text-white font-semibold block text-xs">Phone &amp; Dispatch</span>
-              <a href="tel:+201515212741" className="text-[11px] text-slate-400 hover:text-sky-300 transition-colors">
-                +20 151 5212741 · Daily 06:00 – 22:00
+              <a href="tel:+201022124589" className="text-[11px] text-slate-400 hover:text-sky-300 transition-colors">
+                +20 102 212 4589 · Daily 06:00 – 22:00
               </a>
             </div>
           </div>
