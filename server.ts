@@ -12,6 +12,7 @@ import { STANDARD_PICKUP_LOCATIONS, GLOBAL_BOOKING_EXTRAS } from './src/data/boo
 import { startBookingNotificationWorker } from './src/server/bookingNotificationWorker';
 import { INITIAL_STATIC_PAGES } from './src/data/staticPages';
 import { resolveKemetSpiritSupabaseUrl } from './src/lib/supabaseProjectGuard';
+import { SUPPORTED_LANGUAGE_CODES } from './src/types/i18n';
 
 dotenv.config();
 
@@ -939,7 +940,7 @@ app.get('/api/config', rateLimit(120, 60_000), (_req: Request, res: Response) =>
     operatingHours: '06:00 - 22:00 EET (Daily)',
     currencyDefault: 'EUR',
     supportedCurrencies: ['EUR', 'USD', 'GBP', 'EGP'],
-    supportedLanguages: ['en', 'de', 'ru', 'fr', 'ar', 'it', 'pl', 'nl'],
+    supportedLanguages: [...SUPPORTED_LANGUAGE_CODES],
     depositRequired: false,
     cancellationFreeNoticeHours: 24,
   });
@@ -3078,8 +3079,6 @@ const KEMETSPIRIT_CORE_PUBLIC_PATHS = [
   '/',
   '/excursions',
   '/experiences',
-  '/blog',
-  '/about',
   '/contact',
   '/privacy',
   '/terms',
@@ -3212,6 +3211,8 @@ app.get('/sitemap.xml', async (_req: Request, res: Response) => {
       if (error) {
         console.warn('[SEO sitemap] Published blog query failed:', error.message);
       } else {
+        const hasPublishedArticles = (posts || []).some((post: any) => typeof post.slug === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(post.slug.trim()));
+        if (hasPublishedArticles) urls.set(`${KEMETSPIRIT_PUBLIC_ORIGIN}/blog`, undefined);
         for (const post of posts || []) {
           const slug = typeof post.slug === 'string' ? post.slug.trim() : '';
           if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug)) continue;
@@ -3223,6 +3224,37 @@ app.get('/sitemap.xml', async (_req: Request, res: Response) => {
     }
   }
 
+  // Keep sitemap membership consistent with the robots directives stored in SEO metadata.
+  if (publicSupabase) {
+    try {
+      const { data: noindexRows, error } = await publicSupabase.from('seo_metadata')
+        .select('entity_type,page_slug,entity_id').eq('robots_index', false);
+      if (error) {
+        console.warn('[SEO sitemap] Noindex metadata lookup failed:', error.message);
+      } else {
+        const tourIds: string[] = [];
+        const destinationIds: string[] = [];
+        for (const row of noindexRows || []) {
+          if (row.entity_type === 'page' && typeof row.page_slug === 'string') {
+            urls.delete(`${KEMETSPIRIT_PUBLIC_ORIGIN}/${encodeURIComponent(row.page_slug)}`);
+          } else if (row.entity_type === 'tour' && row.entity_id) tourIds.push(String(row.entity_id));
+          else if (row.entity_type === 'destination' && row.entity_id) destinationIds.push(String(row.entity_id));
+        }
+        if (tourIds.length) {
+          const { data, error: lookupError } = await publicSupabase.from('tours').select('slug').in('id', tourIds);
+          if (lookupError) console.warn('[SEO sitemap] Noindex tour lookup failed:', lookupError.message);
+          for (const item of data || []) if (typeof item.slug === 'string') urls.delete(`${KEMETSPIRIT_PUBLIC_ORIGIN}/excursions/${encodeURIComponent(item.slug)}`);
+        }
+        if (destinationIds.length) {
+          const { data, error: lookupError } = await publicSupabase.from('destinations').select('slug').in('id', destinationIds);
+          if (lookupError) console.warn('[SEO sitemap] Noindex destination lookup failed:', lookupError.message);
+          for (const item of data || []) if (typeof item.slug === 'string') urls.delete(`${KEMETSPIRIT_PUBLIC_ORIGIN}/destinations/${encodeURIComponent(item.slug)}`);
+        }
+      }
+    } catch (error) {
+      console.warn('[SEO sitemap] Noindex metadata could not be applied:', error);
+    }
+  }
   const entries = Array.from(urls.entries()).map(([loc, lastmod]) => (
     `  <url><loc>${escapeXml(loc)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`
   ));
@@ -3362,6 +3394,85 @@ app.get('/llms.txt', async (_req: Request, res: Response) => {
   return res.send(lines.join('\n'));
 });
 
+// Expanded AI-readable reference; includes only public business details and published catalogue records.
+app.get('/llms-full.txt', async (_req: Request, res: Response) => {
+  const lines = [
+    '# KemetSpirit — Full AI-readable reference',
+    '',
+    '## Business identity',
+    '- Brand: KemetSpirit',
+    '- Website: https://kemetspirit.com/',
+    '- Location: Hurghada New Marina, Berth B-14, Red Sea Governorate, Egypt',
+    '- Contact: reservations@kemetspirit.com',
+    '- Phone and WhatsApp: +20 151 5212741',
+    '',
+    '## Public pages',
+    '- https://kemetspirit.com/',
+    '- https://kemetspirit.com/excursions',
+    '- https://kemetspirit.com/experiences',
+    '- https://kemetspirit.com/contact',
+    '- https://kemetspirit.com/booking-conditions',
+    '- https://kemetspirit.com/privacy',
+    '- https://kemetspirit.com/terms',
+    '- https://kemetspirit.com/cancellation-policy',
+    '- https://kemetspirit.com/cookie-policy',
+    '',
+    '## Catalogue guidance',
+    '- Only published excursions are public catalogue entries.',
+    '- The live excursion page is the source of truth for current price, currency, duration, pickup, inclusions and cancellation details.',
+    '- Prices and availability can change. Verify them on the live page before advising a traveller.',
+    '- Do not infer services, certifications, departure times or availability that are not explicitly published.',
+    '- Supported website languages: English, German, Russian, Italian and Romanian.',
+    '',
+    '## Published excursions',
+  ];
+  if (publicSupabase) {
+    try {
+      const { data, error } = await publicSupabase.from('tours')
+        .select('title,slug,short_description,description,price,currency,duration,pickup_info,cancellation_policy')
+        .eq('status', 'published').order('sort_order', { ascending: true }).limit(500);
+      if (error) console.warn('[SEO llms-full] Excursion catalogue unavailable:', error.message);
+      else for (const tour of data || []) {
+        const slug = typeof tour.slug === 'string' ? tour.slug.trim() : '';
+        const title = cleanPublicText(tour.title, 160);
+        if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug)) continue;
+        const price = Number(tour.price);
+        const currency = typeof tour.currency === 'string' && /^[A-Z]{3}$/i.test(tour.currency) ? tour.currency.toUpperCase() : 'EUR';
+        const priceText = Number.isFinite(price) && price > 0 ? `Price: ${price} ${currency}` : 'Price: check live excursion page';
+        lines.push(`### ${title}`, `URL: https://kemetspirit.com/excursions/${encodeURIComponent(slug)}`, cleanPublicText(tour.short_description || tour.description, 500), cleanPublicText(tour.description, 1800), priceText, `Duration: ${cleanPublicText(tour.duration, 100)}`, `Pickup: ${cleanPublicText(tour.pickup_info, 500)}`, `Cancellation: ${cleanPublicText(tour.cancellation_policy, 500)}`, '');
+      }
+    } catch (error) { console.warn('[SEO llms-full] Excursion lookup failed:', error); }
+    lines.push('', '## Published destinations', '');
+    try {
+      const { data, error } = await publicSupabase.from('destinations').select('name,slug,tagline,description').eq('status', 'published').order('sort_order', { ascending: true }).limit(200);
+      if (error) console.warn('[SEO llms-full] Destination lookup failed:', error.message);
+      else for (const item of data || []) {
+        const slug = typeof item.slug === 'string' ? item.slug.trim() : '';
+        const name = cleanPublicText(item.name, 120);
+        if (!name || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug)) continue;
+        lines.push(`- [${name}](https://kemetspirit.com/destinations/${encodeURIComponent(slug)}): ${cleanPublicText(item.tagline || item.description, 700)}`);
+      }
+    } catch (error) { console.warn('[SEO llms-full] Destination lookup failed:', error); }
+    lines.push('', '## Published travel journal articles', '');
+    try {
+      const { data, error } = await publicSupabase.from('blog_posts').select('title,slug,excerpt,published_at')
+        .in('status', ['published', 'scheduled']).lte('published_at', new Date().toISOString())
+        .order('published_at', { ascending: false }).limit(200);
+      if (error) console.warn('[SEO llms-full] Journal lookup failed:', error.message);
+      else for (const item of data || []) {
+        const slug = typeof item.slug === 'string' ? item.slug.trim() : '';
+        const title = cleanPublicText(item.title, 160);
+        if (!title || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug)) continue;
+        lines.push(`- [${title}](https://kemetspirit.com/blog/${encodeURIComponent(slug)}): ${cleanPublicText(item.excerpt, 700)}`);
+      }
+    } catch (error) { console.warn('[SEO llms-full] Journal lookup failed:', error); }
+  }
+  lines.push('', '## AI and developer discovery', '- Concise index: https://kemetspirit.com/llms.txt', '- Sitemap: https://kemetspirit.com/sitemap.xml', '- Read-only MCP server card: https://kemetspirit.com/.well-known/mcp/server-card.json', '- MCP endpoint: https://kemetspirit.com/mcp', '- MCP exposes published excursions only. It does not provide customer records, booking operations, payments or administrative access.', '', '## Contact and verification', '- Refer travellers to the relevant live excursion page and official KemetSpirit contact channels for current details.', '- Never present cached or historical prices or availability as live confirmation.', '');
+  res.status(200);
+  res.type('text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+  return res.send(lines.join('\n'));
+});
 
 const KEMETSPIRIT_MCP_TOOLS = [
   {
@@ -3451,18 +3562,25 @@ app.post('/mcp', rateLimit(60, 60_000), async (req: Request, res: Response) => {
     if (toolName === 'search_published_excursions') {
       const queryText = typeof args.query === 'string' ? args.query.trim().slice(0, 120) : '';
       const limit = Number.isInteger(args.limit) ? Math.max(1, Math.min(20, args.limit)) : 10;
-      let query = publicSupabase.from('tours')
-        .select('title,slug,short_description,price,currency,duration')
+      const { data, error } = await publicSupabase.from('tours')
+        .select('title,slug,short_description,description,price,currency,duration')
         .eq('status', 'published')
         .order('sort_order', { ascending: true })
-        .limit(limit);
-      if (queryText) query = query.ilike('title', `%${queryText.replace(/[%_]/g, '')}%`);
-      const { data, error } = await query;
+        .limit(500);
       if (error) throw error;
-      const tours = (data || []).map((tour: any) => ({
+      const normalizedQuery = queryText.toLocaleLowerCase();
+      const matchingTours = (data || []).filter((tour: any) => {
+        if (!normalizedQuery) return true;
+        const searchableText = [tour.title, tour.short_description, tour.description]
+          .map((value) => cleanPublicText(value, 4000))
+          .join(' ').toLocaleLowerCase();
+        return searchableText.includes(normalizedQuery);
+      }).slice(0, limit);
+      const tours = matchingTours.map((tour: any) => ({
         title: cleanPublicText(tour.title, 160),
         slug: cleanPublicText(tour.slug, 180),
-        description: cleanPublicText(tour.short_description, 400),
+        description: cleanPublicText(tour.short_description || tour.description, 400),
+        details: cleanPublicText(tour.description, 1200),
         price: Number.isFinite(Number(tour.price)) ? Number(tour.price) : null,
         currency: typeof tour.currency === 'string' ? tour.currency : 'EUR',
         duration: cleanPublicText(tour.duration, 100),
@@ -3864,6 +3982,11 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
           .order('published_at', { ascending: false }).limit(30);
         if (error) console.warn('[SEO render] Blog index query failed:', error.message);
         const posts = data || [];
+        if (posts.length === 0) {
+          // Keep the empty journal available to visitors without indexing a thin archive page.
+          noindex = true;
+          nofollow = true;
+        }
         const cards = posts.map((post: any) => {
           const slug = typeof post.slug === 'string' ? post.slug.trim() : '';
           const postTitle = seoPlainText(post.title, 160);
