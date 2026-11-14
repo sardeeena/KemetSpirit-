@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF,
@@ -10,6 +11,10 @@ const awesomeAdventureUrl = 'https://uvtbtpxtrrmaublrztgv.supabase.co';
 const retiredSourceProjectUrl = 'https://cyifhjqqvtiguitrziqs.supabase.co';
 
 assert.equal(EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF, 'mktrtoctcjyokclpdeui', 'the production project ref is KemetSpirit');
+
+const rootHtml = fs.readFileSync('index.html', 'utf8');
+assert.match(rootHtml, new RegExp('rel="dns-prefetch" href="' + kemetSpiritUrl + '"'), 'the document preconnects only to the KemetSpirit Supabase project');
+assert.doesNotMatch(rootHtml, /uvtbtpxtrrmaublrztgv/i, 'the document must not reference the Awesome Adventure Supabase project');
 assert.equal(isExpectedKemetSpiritSupabaseUrl(kemetSpiritUrl), true, 'production accepts the KemetSpirit project');
 assert.equal(isExpectedKemetSpiritSupabaseUrl(awesomeAdventureUrl), false, 'production rejects the separate AwesomeAdventure project');
 assert.equal(isExpectedKemetSpiritSupabaseUrl(retiredSourceProjectUrl), false, 'production rejects the retired unrelated project');
