@@ -29,6 +29,14 @@ for (const file of [...new Set(roots.flatMap(collect))]) {
   }
 }
 
+const packageJson = JSON.parse(fs.readFileSync(path.resolve('package.json'),'utf8'));
+if (fs.existsSync(path.resolve('scripts/migrate_legacy_tour_media.ts'))) {
+  failures.push('Prohibited legacy Tour storage migration script must not exist');
+}
+if (packageJson.scripts?.['migrate:tour-media'] || packageJson.scripts?.['build:with-media-migration']) {
+  failures.push('Prohibited legacy Tour storage migration commands must not exist');
+}
+
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exitCode = 1;
