@@ -1,6 +1,4 @@
--- Retired sender-domain contacts are not valid Awesome Adventure Tours addresses.
--- The email field is optional; preserve guide profiles, names, phone numbers and all other operational data.
-UPDATE public.guides
-SET email = NULL
-WHERE lower(email) LIKE '%@redseavoyages.com'
-   OR lower(email) LIKE '%@kemetspirit.com';
+-- This migration was authored for Awesome Adventure Tours and is not valid for KemetSpirit.
+-- KemetSpirit guide email addresses are valid account/contact data; never clear them
+-- as part of a migration intended for a different company's retired sender domains.
+SELECT 1;
