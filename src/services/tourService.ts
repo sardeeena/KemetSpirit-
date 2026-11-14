@@ -183,7 +183,7 @@ export async function getPublishedTours(options?: TourFilterOptions): Promise<To
     }
 
     if (options?.featuredOnly) {
-      tours = tours.filter((t) => t.badge || t.rating >= 4.8);
+      tours = tours.filter((t) => t.badge || (t.reviewCount > 0 && t.rating >= 4.8));
     }
 
     if (options?.searchQuery) {
@@ -712,7 +712,7 @@ export async function adminCreateTour(payload: AdminTourPayload): Promise<{ id: 
         difficulty: tourData.difficulty || 'Easy',
         age_restrictions: tourData.age_restrictions || null,
         badge: tourData.badge || null,
-        rating: 5.0,
+        rating: 0,
         review_count: 0,
         sort_order: localTours.length + 1,
         created_at: new Date().toISOString(),
