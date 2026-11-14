@@ -125,6 +125,7 @@ BEGIN
         'extras', COALESCE(p_extras, '[]'::jsonb),
         'coupon_code', UPPER(TRIM(COALESCE(p_coupon_code, ''))),
         'payment_method', p_payment_method,
+        'tour_language', LOWER(BTRIM(COALESCE(p_tour_language, ''))),
         'special_requests', COALESCE(TRIM(p_special_requests), '')
     );
 
