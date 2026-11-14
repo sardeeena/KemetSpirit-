@@ -161,7 +161,7 @@ export const HelpInquiryModal: React.FC<HelpInquiryModalProps> = ({
 
               <div className="pt-2 flex flex-col sm:flex-row gap-2">
                 <a
-                  href={`https://wa.me/201515212741?text=${encodeURIComponent(
+                  href={`https://wa.me/201022124589?text=${encodeURIComponent(
                     `Hello KemetSpirit Concierge, I just submitted help request regarding: "${subject || 'Support'}" from ${name}.`
                   )}`}
                   target="_blank"

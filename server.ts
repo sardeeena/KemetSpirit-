@@ -935,8 +935,8 @@ app.post('/api/communications/whatsapp', rateLimit(20, 60_000), async (req: Auth
 app.get('/api/config', rateLimit(120, 60_000), (_req: Request, res: Response) => {
   res.json({
     brandName: 'KemetSpirit',
-    hotline: '+20 151 5212741',
-    whatsappUrl: 'https://wa.me/201515212741',
+    hotline: '+20 102 212 4589',
+    whatsappUrl: 'https://wa.me/201022124589',
     operatingHours: '06:00 - 22:00 EET (Daily)',
     currencyDefault: 'EUR',
     supportedCurrencies: ['EUR', 'USD', 'GBP', 'EGP'],
@@ -3406,7 +3406,7 @@ app.get('/llms-full.txt', async (_req: Request, res: Response) => {
     '- Website: https://kemetspirit.com/',
     '- Location: Hurghada New Marina, Berth B-14, Red Sea Governorate, Egypt',
     '- Contact: reservations@kemetspirit.com',
-    '- Phone and WhatsApp: +20 151 5212741',
+    '- Phone and WhatsApp: +20 102 212 4589',
     '',
     '## Public pages',
     '- https://kemetspirit.com/',
@@ -3872,7 +3872,7 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
       <h2>Explore published excursions</h2><p><a href="/excursions">Browse all excursions</a></p>
       <div class="seo-grid">${cards || '<p>Explore the excursions catalogue for currently published experiences and details.</p>'}</div>
       <h2>About KemetSpirit</h2><p>Explore our <a href="/about">about page</a>, learn about <a href="/booking-conditions">booking terms and conditions</a>, or <a href="/contact">contact our Hurghada team</a>.</p>
-      <p>Phone: <a href="tel:+201515212741">+20 151 5212741</a></p></main>`;
+      <p>Phone: <a href="tel:+201022124589">+20 102 212 4589</a></p></main>`;
   } else if (path === '/experiences') {
     pageKind = 'experiences';
     seoIdentifier = 'experiences';
@@ -4189,7 +4189,7 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
     url: origin,
     logo: `${origin}/logo.webp`,
     description: 'Excursions and experiences along Egypt’s Red Sea coast, based in Hurghada, Egypt.',
-    telephone: '+201515212741',
+    telephone: '+201022124589',
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'Hurghada New Marina, Berth B-14',
@@ -4199,7 +4199,7 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
     },
     contactPoint: [{
       '@type': 'ContactPoint',
-      telephone: '+201515212741',
+      telephone: '+201022124589',
       contactType: 'customer service',
       availableLanguage: ['English', 'German', 'Russian', 'Italian', 'Romanian'],
       url: `${origin}/contact`,
@@ -4344,7 +4344,7 @@ async function startServer() {
         '- Full agent index: https://kemetspirit.com/llms.txt',
         '',
         '## Contact',
-        '- Phone: +20 151 5212741',
+        '- Phone: +20 102 212 4589',
         '- Office: Hurghada New Marina, Berth B-14, Red Sea, Egypt',
         '',
         '## Published excursions',
