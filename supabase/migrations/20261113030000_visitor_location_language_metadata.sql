@@ -42,15 +42,10 @@ BEGIN
   END IF;
 END $$;
 
--- Existing optional analytics choices predate the new IP-derived location notice.
--- End those sessions without deleting their historical records; visitors must
--- make a fresh version-2 choice before new optional analytics resumes.
-UPDATE public.visitor_sessions
-SET analytics_consent = false,
-    marketing_consent = false,
-    ended_at = COALESCE(ended_at, now()),
-    consent_updated_at = now()
-WHERE analytics_consent = true OR marketing_consent = true;
+-- Consent version 2 is enforced by the application before optional
+-- metadata is collected. Do not blanket-reset existing session choices here:
+-- consent withdrawal is handled per session by the privacy endpoint, which
+-- deletes the session and cascades its event history while retaining consent evidence.
 
 CREATE INDEX IF NOT EXISTS idx_visitor_sessions_country_started
   ON public.visitor_sessions (country_code, started_at DESC)
