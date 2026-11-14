@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { LanguageCode, LanguageConfig, SUPPORTED_LANGUAGES } from '../types/i18n';
+import { LanguageCode, LanguageConfig, SUPPORTED_LANGUAGES, SUPPORTED_LANGUAGE_CODES } from '../types/i18n';
 import { TRANSLATIONS } from '../i18n/translations';
 
 interface LanguageContextValue {
@@ -18,7 +18,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguageState] = useState<LanguageCode>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
-      if (saved && (saved === 'en' || saved === 'de' || saved === 'ru' || saved === 'it' || saved === 'ro')) {
+      if (saved && (SUPPORTED_LANGUAGE_CODES as readonly string[]).includes(saved)) {
         return saved;
       }
       // Detect browser language
