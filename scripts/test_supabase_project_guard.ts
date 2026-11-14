@@ -18,6 +18,8 @@ const wrongGuideDomainCleanup = fs.readFileSync('supabase/migrations/20261113115
 assert.ok(rootHtml.includes('<link rel="dns-prefetch" href="' + kemetSpiritUrl + '">'), 'the document preconnects to the KemetSpirit Supabase project');
 assert.doesNotMatch(rootHtml, /uvtbtpxtrrmaublrztgv/i, 'the document must not reference the Awesome Adventure Supabase project');
 const retiredCompanyNamePattern = new RegExp(['Awesome', 'Adventure', 'Tours'].join('\\s+'), 'i');
+assert.match('Awesome Adventure Tours', retiredCompanyNamePattern, 'the retired-company matcher recognizes the exact brand with spaces');
+assert.match('Awesome\tAdventure\nTours', retiredCompanyNamePattern, 'the retired-company matcher recognizes variable whitespace');
 const retiredCompanyDomainPattern = new RegExp(['awesomeadventure', '.tours'].join(''), 'i');
 assert.doesNotMatch(wrongBrandCleanup, retiredCompanyNamePattern, 'the historical brand cleanup migration must not write retired company branding into KemetSpirit');
 assert.doesNotMatch(wrongBrandCleanup, retiredCompanyDomainPattern, 'the historical brand cleanup migration must not write a retired company domain into KemetSpirit');
