@@ -87,9 +87,9 @@ export const AdminSettings: React.FC = () => {
   const [company, setCompany] = useState<CompanySettings>({
     companyName: 'KemetSpirit',
     email: 'reservations@kemetspirit.com',
-    phone: '+20 151 5212741',
-    whatsapp: '+20 151 5212741',
-    whatsappUrl: 'https://wa.me/201515212741',
+    phone: '+20 102 212 4589',
+    whatsapp: '+20 102 212 4589',
+    whatsappUrl: 'https://wa.me/201022124589',
     address: 'Hurghada Marina Boulevard, Pier 4 Dispatch Office, Red Sea Governorate, Egypt',
     operatingHours: '06:00 - 23:00 EEST (Daily Pier Operations)',
     defaultCurrency: 'EUR',
