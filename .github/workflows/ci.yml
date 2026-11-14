@@ -107,6 +107,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
       - name: Check whether production verification credentials are configured
         id: credentials
         env:
@@ -130,10 +133,6 @@ jobs:
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Remote migration verification skipped because no migration files changed and remote credentials are not configured."
           fi
-
-      - name: Check out repository
-        if: steps.credentials.outputs.enabled == 'true'
-        uses: actions/checkout@v7
 
       - name: Set up Supabase CLI
         if: steps.credentials.outputs.enabled == 'true'
