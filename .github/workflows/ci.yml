@@ -98,3 +98,44 @@ jobs:
       - name: Stop local Supabase stack
         if: always() && steps.setup-supabase-cli.outcome == 'success'
         run: supabase stop --no-backup
+
+  remote-migration-history:
+    name: Remote Supabase migration history (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check whether production verification credentials are configured
+        id: credentials
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_DB_PASSWORD" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Remote migration verification skipped: SUPABASE_ACCESS_TOKEN and/or SUPABASE_DB_PASSWORD is not configured."
+          fi
+
+      - name: Check out repository
+        if: steps.credentials.outputs.enabled == 'true'
+        uses: actions/checkout@v7
+
+      - name: Set up Supabase CLI
+        if: steps.credentials.outputs.enabled == 'true'
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.1.0
+
+      - name: Link only the KemetSpirit Supabase project
+        if: steps.credentials.outputs.enabled == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref mktrtoctcjyokclpdeui --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Verify remote migration history without applying changes
+        if: steps.credentials.outputs.enabled == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase db push --linked --dry-run

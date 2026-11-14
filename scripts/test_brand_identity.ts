@@ -37,6 +37,8 @@ function collectFiles(entry: string): string[] {
 
 const files = [...new Set(SCAN_ROOTS.flatMap(collectFiles))].filter((file) => {
   const relative = path.relative(ROOT, file);
+  // Test fixtures intentionally mention retired names to verify the guard; they are not live site content.
+  if (/^scripts\/test_[^/]+\.(?:ts|tsx|js|jsx)$/i.test(relative)) return false;
   return TEXT_EXTENSIONS.has(path.extname(file).toLowerCase()) || relative.startsWith('public/assets/aistudio/');
 });
 const violations: string[] = [];
