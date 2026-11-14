@@ -527,7 +527,9 @@ function MainApp() {
         description: 'Discover Red Sea travel guides, local insights and inspiration for exploring Hurghada and Egypt with KemetSpirit.',
         canonicalUrl: 'https://kemetspirit.com/blog',
         ogType: 'website',
-        robotsIndex: true,
+        // The journal is noindex until its public query returns published articles.
+        // BlogPage updates this after its published-post request completes.
+        robotsIndex: false,
         robotsFollow: true,
       });
       return;
@@ -539,7 +541,8 @@ function MainApp() {
         description: 'Travel inspiration and local guides from the KemetSpirit team in Hurghada, Egypt.',
         canonicalUrl: typeof window !== 'undefined' ? `https://kemetspirit.com${currentPath}` : undefined,
         ogType: 'article',
-        robotsIndex: true,
+        // BlogPage enables indexing only after the requested published article is found.
+        robotsIndex: false,
         robotsFollow: true,
       });
       return;

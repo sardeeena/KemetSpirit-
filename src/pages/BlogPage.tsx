@@ -22,6 +22,20 @@ export const BlogPage: React.FC<{ slug?: string; onNavigate:(path:string)=>void 
   },[slug]);
 
   useEffect(() => {
+    if (typeof document === 'undefined' || loading) return;
+    const robots = slug
+      ? (article ? 'index, follow, max-image-preview:large' : 'noindex, follow')
+      : (posts.length > 0 ? 'index, follow, max-image-preview:large' : 'noindex, follow');
+    let node = document.head.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
+    if (!node) {
+      node = document.createElement('meta');
+      node.setAttribute('name', 'robots');
+      document.head.appendChild(node);
+    }
+    node.content = robots;
+  }, [slug, article, posts.length, loading]);
+
+  useEffect(() => {
     if (!slug || !article || typeof document === 'undefined') return;
     const title = article.seo_title || `${article.title} | KemetSpirit Journal`;
     const description = article.seo_description || article.excerpt || 'Travel inspiration and local guides from KemetSpirit in Egypt.';

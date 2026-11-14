@@ -175,6 +175,45 @@ async function runRouteTests() {
     'Server-side booking creation persists and validates the selected tour language'
   );
 
+
+  const i18nSource = fs.readFileSync(path.join(process.cwd(), 'src/types/i18n.ts'), 'utf8');
+  assert(
+    'API and frontend language list share one source',
+    serverSource.includes('supportedLanguages: [...SUPPORTED_LANGUAGE_CODES]') &&
+      i18nSource.includes("SUPPORTED_LANGUAGE_CODES = ['en', 'de', 'ru', 'it', 'ro']"),
+    'The public API advertises exactly the five implemented frontend languages'
+  );
+  assert(
+    'MCP search matches title and descriptions',
+    serverSource.includes('tour.short_description, tour.description') &&
+      serverSource.includes('searchableText.includes(normalizedQuery)'),
+    'Read-only MCP search filters published excursions by title, short description and full description'
+  );
+  assert(
+    'Sitemap excludes noindex metadata',
+    !serverSource.includes("  '/blog',\n  '/about',") &&
+      serverSource.includes(".from('seo_metadata')") &&
+      serverSource.includes(".eq('robots_index', false)"),
+    'Sitemap removes page, tour and destination URLs explicitly marked noindex'
+  );
+  assert(
+    'Empty travel journal is noindex',
+    serverSource.includes('if (posts.length > 0)') &&
+      serverSource.includes('noindex = true;') &&
+      serverSource.includes("app.get('/llms-full.txt'"),
+    'Empty blog index is excluded from search and an expanded AI-readable index is served'
+  );
+
+
+  const blogPageSource = fs.readFileSync(path.join(process.cwd(), 'src/pages/BlogPage.tsx'), 'utf8');
+  assert(
+    'Client blog robots state follows published articles',
+    appSource.includes('robotsIndex: false') &&
+      blogPageSource.includes("posts.length > 0 ? 'index, follow, max-image-preview:large' : 'noindex, follow'") &&
+      blogPageSource.includes("article ? 'index, follow, max-image-preview:large' : 'noindex, follow'"),
+    'Client-side hydration keeps empty journals and missing articles out of the index, and indexes real published content'
+  );
+
   console.log('Step 5: Verifying server-side private SPA route allowlist...');
   assert(
     'server private support route fallback',
