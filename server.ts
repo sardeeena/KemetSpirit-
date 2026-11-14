@@ -1105,7 +1105,11 @@ app.post('/api/bookings/create', rateLimit(10, 60_000), async (req: Authenticate
     paymentMethod = 'pay_at_pickup',
     specialRequests,
     couponCode,
+    tourLanguage: requestedTourLanguage,
   } = req.body || {};
+  const tourLanguage = typeof requestedTourLanguage === 'string'
+    ? requestedTourLanguage.trim()
+    : '';
 
   if (!serverSupabase || !SUPABASE_URL || !SUPABASE_USER_KEY) {
     return res.status(503).json({
@@ -1165,7 +1169,7 @@ app.post('/api/bookings/create', rateLimit(10, 60_000), async (req: Authenticate
       global: authorization ? { headers: { Authorization: authorization } } : undefined,
     });
 
-    const { data, error } = await requestClient.rpc('create_booking_atomic', {
+    const { data, error } = await requestClient.rpc('create_booking_atomic_with_language', {
       p_tour_identifier: tourSlug.trim(),
       p_booking_date: date,
       p_adult_count: adults,
@@ -1188,6 +1192,7 @@ app.post('/api/bookings/create', rateLimit(10, 60_000), async (req: Authenticate
       p_payment_method: paymentMethod,
       p_special_requests: specialRequests || null,
       p_idempotency_key: idempotencyKey,
+      p_tour_language: tourLanguage || null,
     });
 
     if (error) {
