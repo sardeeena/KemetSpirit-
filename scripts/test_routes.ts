@@ -169,6 +169,11 @@ async function runRouteTests() {
   assert('support portal noindex', seoSource.includes("'/support'") && seoSource.includes('robotsIndex: false') && seoSource.includes('robotsFollow: false'), 'Customer support portal is explicitly noindex and nofollow');
   const serverSource = fs.readFileSync(path.join(process.cwd(), 'server.ts'), 'utf8');
   assert('server experiences SEO rendering', serverSource.includes("path === '/experiences'") && serverSource.includes("pageKind = 'experiences'"), 'Server returns indexable route-specific HTML for /experiences');
+  assert(
+    'server booking API uses the language-aware atomic RPC',
+    serverSource.includes("rpc('create_booking_atomic_with_language'") && serverSource.includes('p_tour_language: tourLanguage || null'),
+    'Server-side booking creation persists and validates the selected tour language'
+  );
 
   console.log('Step 5: Verifying server-side private SPA route allowlist...');
   assert(
