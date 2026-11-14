@@ -73,6 +73,10 @@ for (const image of legacyImages) {
     if (uploadError) throw uploadError;
 
     const { data: publicUrl } = supabase.storage.from(BUCKET).getPublicUrl(objectPath);
+    const publicCheck = await fetch(publicUrl.publicUrl, { signal: AbortSignal.timeout(30000) });
+    if (!publicCheck.ok) throw new Error(`Uploaded public object is not readable (HTTP ${publicCheck.status})`);
+    const servedType = (publicCheck.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    if (servedType !== contentType) throw new Error(`Uploaded object content type mismatch: ${servedType}`);
     const { error: updateError } = await supabase.from('tour_images').update({
       image_url: publicUrl.publicUrl,
       storage_path: objectPath,
