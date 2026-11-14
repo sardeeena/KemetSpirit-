@@ -32,7 +32,8 @@
     "test:technical": "tsx scripts/test_technical_control_center.ts",
     "test:brand-identity": "tsx scripts/test_brand_identity.ts",
     "migrate:tour-media": "tsx scripts/migrate_legacy_tour_media.ts",
-    "test:contact-identity": "tsx scripts/test_contact_and_project_identity.ts"
+    "test:contact-identity": "tsx scripts/test_contact_and_project_identity.ts",
+    "build:with-media-migration": "npm run migrate:tour-media && npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
