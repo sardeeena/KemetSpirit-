@@ -257,15 +257,7 @@ export async function signUpUser(data: {
     return { user: null, error: 'Password must be at least 6 characters long.' };
   }
 
-  // Check if email already registered locally
   const localUsers = getStoredLocalUsers();
-  const existingUser = localUsers.find((u) => u.user.email.toLowerCase() === cleanEmail);
-  if (existingUser && existingUser.isConfirmed !== false) {
-    return {
-      user: null,
-      error: 'An account with this email address already exists. Please sign in instead.',
-    };
-  }
 
   const generatedToken = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -336,6 +328,16 @@ export async function signUpUser(data: {
     }
   } else if (!import.meta.env.DEV) {
     return { user: null, error: 'Registration is unavailable because Supabase is not configured.' };
+  }
+
+  // The browser's local cache is only authoritative for the development fallback.
+  // It must never block a real Supabase signup based on stale or user-editable data.
+  const existingLocalUser = localUsers.find((u) => u.user.email.toLowerCase() === cleanEmail);
+  if (existingLocalUser && existingLocalUser.isConfirmed !== false) {
+    return {
+      user: null,
+      error: 'An account with this email address already exists. Please sign in instead.',
+    };
   }
 
   // 2. Save to local registry with isConfirmed = false (development only)
