@@ -1,4 +1,4 @@
-export const EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF = 'uvtbtpxtrrmaublrztgv';
+export const EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF = 'mktrtoctcjyokclpdeui';
 
 /**
  * Production KemetSpirit clients must connect only to the configured production
