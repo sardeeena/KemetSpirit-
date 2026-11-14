@@ -49,22 +49,19 @@ SELECT ok(
 WITH withdrawn AS (
   INSERT INTO public.visitor_sessions (id, visitor_id, analytics_consent)
   VALUES (gen_random_uuid(), gen_random_uuid(), true)
-  RETURNING id, visitor_id
+  RETURNING id
 ), event_row AS (
   INSERT INTO public.visitor_events (session_id, event_name)
   SELECT id, 'page_view' FROM withdrawn
   RETURNING session_id
+), consent_row AS (
+  INSERT INTO public.visitor_consent_records
+    (visitor_session_id, visitor_id, necessary, analytics, marketing, consent_version, consent_source)
+  SELECT id, NULL, true, true, false, '2', 'privacy_settings' FROM withdrawn
+  RETURNING id, visitor_session_id
 )
-INSERT INTO public.visitor_consent_records
-  (visitor_session_id, visitor_id, necessary, analytics, marketing, consent_version, consent_source)
-SELECT id, visitor_id, true, true, false, '2', 'privacy_settings' FROM withdrawn;
-
-SELECT set_config(
-  'pgtap.withdrawn_session_id',
-  (SELECT visitor_session_id::text FROM public.visitor_consent_records
-   WHERE consent_source = 'privacy_settings' ORDER BY recorded_at DESC LIMIT 1),
-  TRUE
-);
+SELECT set_config('pgtap.withdrawn_session_id', (SELECT visitor_session_id::text FROM consent_row), TRUE),
+       set_config('pgtap.withdrawn_consent_id', (SELECT id::text FROM consent_row), TRUE);
 
 DELETE FROM public.visitor_sessions
 WHERE id = current_setting('pgtap.withdrawn_session_id')::uuid;
@@ -72,9 +69,10 @@ WHERE id = current_setting('pgtap.withdrawn_session_id')::uuid;
 SELECT ok(
   NOT EXISTS (SELECT 1 FROM public.visitor_events WHERE session_id = current_setting('pgtap.withdrawn_session_id')::uuid)
   AND EXISTS (SELECT 1 FROM public.visitor_consent_records
-              WHERE visitor_session_id IS NULL AND consent_source = 'privacy_settings'
-                AND analytics = true),
-  'withdrawal removes session events but retains consent evidence without visitor/session identifiers'
+              WHERE id = current_setting('pgtap.withdrawn_consent_id')::uuid
+                AND visitor_session_id IS NULL AND visitor_id IS NULL
+                AND consent_source = 'privacy_settings' AND analytics = true),
+  'withdrawal removes session events but retains minimal consent evidence without visitor/session identifiers'
 );
 
 SELECT * FROM finish();
