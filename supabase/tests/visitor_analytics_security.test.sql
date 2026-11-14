@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(20);
+SELECT plan(21);
 
 SELECT ok((SELECT relrowsecurity FROM pg_class WHERE oid = 'public.visitor_sessions'::regclass), 'visitor_sessions has RLS enabled');
 SELECT ok((SELECT relrowsecurity FROM pg_class WHERE oid = 'public.visitor_events'::regclass), 'visitor_events has RLS enabled');
@@ -25,6 +25,24 @@ SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 
 SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'visitor_analytics_settings' AND column_name = 'audit_log_retention_days'), 'business audit retention is configurable');
 SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'visitor_sessions' AND column_name = 'utm_term'), 'UTM search term attribution is available');
 SELECT ok(EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'visitor_sessions' AND column_name = 'utm_content'), 'UTM content attribution is available');
+
+-- Withdrawn-consent sessions remain in the audit history but must not contribute
+-- to visitor-event or booking-funnel analytics.
+WITH sessions AS (
+  INSERT INTO public.visitor_sessions (id, visitor_id, analytics_consent)
+  VALUES
+    (gen_random_uuid(), gen_random_uuid(), true),
+    (gen_random_uuid(), gen_random_uuid(), false)
+  RETURNING id, analytics_consent
+)
+INSERT INTO public.visitor_events (session_id, event_name)
+SELECT id, 'booking_started' FROM sessions;
+
+SELECT ok(
+  (public.get_visitor_analytics_overview(now() - interval '1 day')->>'events')::integer = 1
+  AND (public.get_visitor_analytics_overview(now() - interval '1 day')->'bookingFunnel'->>'started')::integer = 1,
+  'visitor event and funnel metrics exclude sessions whose analytics consent is withdrawn'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
