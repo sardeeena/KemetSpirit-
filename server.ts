@@ -11,7 +11,7 @@ import { CONCIERGE_SYSTEM_PROMPT, TOUR_CATALOG_SUMMARY } from './src/data/chatKn
 import { STANDARD_PICKUP_LOCATIONS, GLOBAL_BOOKING_EXTRAS } from './src/data/bookingData';
 import { startBookingNotificationWorker } from './src/server/bookingNotificationWorker';
 import { INITIAL_STATIC_PAGES } from './src/data/staticPages';
-import { EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF, resolveKemetSpiritSupabaseUrl } from './src/lib/supabaseProjectGuard';
+import { resolveKemetSpiritSupabaseUrl } from './src/lib/supabaseProjectGuard';
 
 dotenv.config();
 
