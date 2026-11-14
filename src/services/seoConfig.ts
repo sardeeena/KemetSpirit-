@@ -314,8 +314,8 @@ export const STATIC_ROUTE_SEO: Record<string, (origin: string) => SeoMetadata> =
   }),
 
   '/about': (origin) => ({
-    title: 'About KemetSpirit | Red Sea Excursions in Hurghada',
-    description: 'Learn about KemetSpirit and explore published boat trips, island excursions and Red Sea experiences from Hurghada, Egypt.',
+    title: 'About KemetSpirit | Our Hurghada Team & Experiences',
+    description: 'Learn about KemetSpirit and explore published boat trips, island tours and activities departing from Hurghada, Egypt.',
     canonicalUrl: `${origin}/about`,
     ogType: 'website',
     ogImage: SEO_DEFAULTS.DEFAULT_OG_IMAGE,
