@@ -3237,6 +3237,7 @@ app.get('/sitemap.xml', async (_req: Request, res: Response) => {
         for (const row of noindexRows || []) {
           if (row.entity_type === 'page' && typeof row.page_slug === 'string') {
             urls.delete(`${KEMETSPIRIT_PUBLIC_ORIGIN}/${encodeURIComponent(row.page_slug)}`);
+            urls.delete(`${KEMETSPIRIT_PUBLIC_ORIGIN}/blog/${encodeURIComponent(row.page_slug)}`);
           } else if (row.entity_type === 'tour' && row.entity_id) tourIds.push(String(row.entity_id));
           else if (row.entity_type === 'destination' && row.entity_id) destinationIds.push(String(row.entity_id));
         }
@@ -3285,6 +3286,7 @@ app.get('/llms.txt', async (_req: Request, res: Response) => {
     '- [Terms & Conditions](https://kemetspirit.com/terms)',
     '- [Cancellation & Refund Policy](https://kemetspirit.com/cancellation-policy)',
     '- [Cookie Policy](https://kemetspirit.com/cookie-policy)',
+    '- Full AI-readable reference: https://kemetspirit.com/llms-full.txt',
     '',
     '## Published destinations and excursions',
   ];
@@ -3969,6 +3971,8 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
     }
   } else if (path === '/blog') {
     pageKind = 'blog-index';
+    noindex = true;
+    nofollow = true;
     seoEntityType = 'page';
     seoIdentifier = 'blog';
     seoIdentifierIsPageSlug = true;
@@ -3982,10 +3986,10 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
           .order('published_at', { ascending: false }).limit(30);
         if (error) console.warn('[SEO render] Blog index query failed:', error.message);
         const posts = data || [];
-        if (posts.length === 0) {
-          // Keep the empty journal available to visitors without indexing a thin archive page.
-          noindex = true;
-          nofollow = true;
+        if (posts.length > 0) {
+          // The journal becomes indexable automatically once it contains published articles.
+          noindex = false;
+          nofollow = false;
         }
         const cards = posts.map((post: any) => {
           const slug = typeof post.slug === 'string' ? post.slug.trim() : '';
@@ -4197,7 +4201,7 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
       '@type': 'ContactPoint',
       telephone: '+201515212741',
       contactType: 'customer service',
-      availableLanguage: ['English', 'German', 'Russian'],
+      availableLanguage: ['English', 'German', 'Russian', 'Italian', 'Romanian'],
       url: `${origin}/contact`,
     }],
   };
@@ -4321,7 +4325,7 @@ async function startServer() {
 
     app.get('/', async (req: Request, res: Response, next: NextFunction) => {
       res.setHeader('Link',
-        '<https://kemetspirit.com/llms.txt>; rel="alternate"; type="text/plain"; title="KemetSpirit LLMs index", <https://kemetspirit.com/sitemap.xml>; rel="sitemap"');
+        '<https://kemetspirit.com/llms.txt>; rel="alternate"; type="text/plain"; title="KemetSpirit LLMs index", <https://kemetspirit.com/llms-full.txt>; rel="alternate"; type="text/plain"; title="KemetSpirit full AI reference", <https://kemetspirit.com/sitemap.xml>; rel="sitemap"');
       const acceptsMarkdown = (req.get('accept') || '').split(',').some((value) => value.trim().toLowerCase().startsWith('text/markdown'));
       if (!acceptsMarkdown) return next();
 
