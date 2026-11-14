@@ -55,8 +55,12 @@ async function runTestSuite() {
     'Catalogue validator does not default to the unrelated legacy Supabase project'
   );
   assert(
-    importerSource.includes("EXPECTED_SUPABASE_PROJECT_REF = 'uvtbtpxtrrmaublrztgv'"),
+    importerSource.includes("EXPECTED_SUPABASE_PROJECT_REF = 'mktrtoctcjyokclpdeui'"),
     'Catalogue validator is pinned to the KemetSpirit production Supabase project'
+  );
+  assert(
+    !importerSource.includes('uvtbtpxtrrmaublrztgv'),
+    'Catalogue validator does not reference the separate AwesomeAdventure project'
   );
   assert(
     importerSource.includes('--execute/--apply is not supported'),
@@ -157,8 +161,8 @@ async function runTestSuite() {
     'Category excursion counts are derived from the actual catalogue'
   );
 
-  const catalogueSeedSql = fs.readFileSync(path.resolve('supabase/seed/awesome_adventure_tours_catalogue.sql'), 'utf8');
-  const catalogueCorrectionsSql = fs.readFileSync(path.resolve('supabase/seed/awesome_adventure_tours_catalogue_live_corrections.sql'), 'utf8');
+  const catalogueSeedSql = fs.readFileSync(path.resolve('supabase/seed/kemetspirit_catalogue.sql'), 'utf8');
+  const catalogueCorrectionsSql = fs.readFileSync(path.resolve('supabase/seed/kemetspirit_catalogue_live_corrections.sql'), 'utf8');
   const guardedCorrectionUpdates = [...catalogueCorrectionsSql.matchAll(/UPDATE public\.(tours|destinations)\b/g)];
   assert(
     guardedCorrectionUpdates.length === 5 &&
