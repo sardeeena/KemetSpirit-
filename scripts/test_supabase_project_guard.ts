@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF,
@@ -10,6 +11,18 @@ const awesomeAdventureUrl = 'https://uvtbtpxtrrmaublrztgv.supabase.co';
 const retiredSourceProjectUrl = 'https://cyifhjqqvtiguitrziqs.supabase.co';
 
 assert.equal(EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF, 'mktrtoctcjyokclpdeui', 'the production project ref is KemetSpirit');
+
+const rootHtml = fs.readFileSync('index.html', 'utf8');
+const wrongBrandCleanup = fs.readFileSync('supabase/migrations/20261113114456_canonical_awesome_adventure_tours_brand_cleanup.sql', 'utf8');
+const wrongGuideDomainCleanup = fs.readFileSync('supabase/migrations/20261113115613_remove_retired_guide_email_domains.sql', 'utf8');
+assert.ok(rootHtml.includes('<link rel="dns-prefetch" href="' + kemetSpiritUrl + '">'), 'the document preconnects to the KemetSpirit Supabase project');
+assert.doesNotMatch(rootHtml, /uvtbtpxtrrmaublrztgv/i, 'the document must not reference the Awesome Adventure Supabase project');
+const retiredCompanyNamePattern = new RegExp(['Awesome', 'Adventure', 'Tours'].join('\\s+'), 'i');
+const retiredCompanyDomainPattern = new RegExp(['awesomeadventure', '.tours'].join(''), 'i');
+assert.doesNotMatch(wrongBrandCleanup, retiredCompanyNamePattern, 'the historical brand cleanup migration must not write retired company branding into KemetSpirit');
+assert.doesNotMatch(wrongBrandCleanup, retiredCompanyDomainPattern, 'the historical brand cleanup migration must not write a retired company domain into KemetSpirit');
+assert.doesNotMatch(wrongGuideDomainCleanup, /@kemetspirit\.com/i, 'the historical guide-domain migration must not remove KemetSpirit email addresses');
+assert.doesNotMatch(wrongGuideDomainCleanup, /UPDATE\s+public\.guides[\s\S]*SET\s+email\s*=\s*NULL/i, 'the historical guide-domain migration must not clear guide email addresses');
 assert.equal(isExpectedKemetSpiritSupabaseUrl(kemetSpiritUrl), true, 'production accepts the KemetSpirit project');
 assert.equal(isExpectedKemetSpiritSupabaseUrl(awesomeAdventureUrl), false, 'production rejects the separate AwesomeAdventure project');
 assert.equal(isExpectedKemetSpiritSupabaseUrl(retiredSourceProjectUrl), false, 'production rejects the retired unrelated project');
