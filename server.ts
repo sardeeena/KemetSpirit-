@@ -11,7 +11,7 @@ import { CONCIERGE_SYSTEM_PROMPT, TOUR_CATALOG_SUMMARY } from './src/data/chatKn
 import { STANDARD_PICKUP_LOCATIONS, GLOBAL_BOOKING_EXTRAS } from './src/data/bookingData';
 import { startBookingNotificationWorker } from './src/server/bookingNotificationWorker';
 import { INITIAL_STATIC_PAGES } from './src/data/staticPages';
-import { EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF, isExpectedKemetSpiritSupabaseUrl } from './src/lib/supabaseProjectGuard';
+import { resolveKemetSpiritSupabaseUrl } from './src/lib/supabaseProjectGuard';
 
 dotenv.config();
 
@@ -62,21 +62,6 @@ export function isSupabasePublishableKey(key?: string | null): boolean {
   return payload?.role === 'anon';
 }
 
-function validateSupabaseUrl(url?: string | null): string | null {
-  if (!url || typeof url !== 'string') return null;
-  const trimmed = url.trim();
-  if (!trimmed.startsWith('https://') && !trimmed.startsWith('http://')) return null;
-  try {
-    const parsed = new URL(trimmed);
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
-      return trimmed;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
 interface ServerSupabaseConfig {
   url: string | null;
   key: string | null;
@@ -92,30 +77,19 @@ function resolveServerSupabaseConfig(): ServerSupabaseConfig {
   const rawServerUrl = process.env.SUPABASE_URL;
   const rawViteUrl = process.env.VITE_SUPABASE_URL;
 
-  if (rawServerUrl !== undefined && rawServerUrl !== '') {
-    const validated = validateSupabaseUrl(rawServerUrl);
-    if (validated) {
-      resolvedUrl = validated;
-    } else {
-      configError = 'Server environment variable SUPABASE_URL is defined but is not a valid HTTP/HTTPS URL.';
-    }
-  } else if (rawViteUrl !== undefined && rawViteUrl !== '') {
-    const validated = validateSupabaseUrl(rawViteUrl);
-    if (validated) {
-      resolvedUrl = validated;
-    } else {
-      configError = 'Environment variable VITE_SUPABASE_URL is defined but is not a valid HTTP/HTTPS URL.';
-    }
-  }
-
-  // 1A. Pin production to the KemetSpirit Supabase project. Local/staging
-  // projects are permitted only when NODE_ENV explicitly marks development/test.
-  if (resolvedUrl) {
-    const allowNonProductionProject = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
-    if (!isExpectedKemetSpiritSupabaseUrl(resolvedUrl, allowNonProductionProject)) {
-      configError = `CONFIGURATION ERROR: This production KemetSpirit server must use Supabase project ${EXPECTED_KEMETSPIRIT_SUPABASE_PROJECT_REF}.`;
-      resolvedUrl = null;
-    }
+  // 1A. Pin production to KemetSpirit while allowing a valid Vite URL to
+  // rescue a malformed SUPABASE_URL. A valid URL for another project is never
+  // rescued or silently replaced.
+  const allowNonProductionProject = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  const urlResolution = resolveKemetSpiritSupabaseUrl(
+    rawServerUrl,
+    rawViteUrl,
+    allowNonProductionProject
+  );
+  resolvedUrl = urlResolution.url;
+  configError = urlResolution.error;
+  if (urlResolution.warning) {
+    console.warn(`[Supabase Config Warning] ${urlResolution.warning}`);
   }
 
   // 2. Resolve Server Credentials (strictly rejecting publishable keys as server secrets)

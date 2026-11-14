@@ -1,4 +1,4 @@
-project_id = "uvtbtpxtrrmaublrztgv"
+project_id = "mktrtoctcjyokclpdeui"
 
 [api]
 enabled = true
@@ -44,19 +44,19 @@ enabled = false
 
 
 [auth.email.template.invite]
-subject = "You are invited to Awesome Adventure Tours"
+subject = "You are invited to KemetSpirit"
 content_path = "./supabase/templates/invite.html"
 
 [auth.email.template.confirmation]
-subject = "Confirm your Awesome Adventure Tours email address"
+subject = "Confirm your KemetSpirit email address"
 content_path = "./supabase/templates/confirm-signup.html"
 
 [auth.email.template.magic_link]
-subject = "Your Awesome Adventure Tours sign-in link"
+subject = "Your KemetSpirit sign-in link"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Awesome Adventure Tours password"
+subject = "Reset your KemetSpirit password"
 content_path = "./supabase/templates/recovery.html"
 
 [auth.email.template.email_change]

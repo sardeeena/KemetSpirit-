@@ -25,6 +25,31 @@ import { COUNTRY_DIAL_CODES } from '../data/bookingData';
 import { CountrySelect } from '../components/common/CountrySelect';
 import { isValidEmail, validatePasswordStrength, sanitizeString, authRateLimiter, sanitizeRedirectUrl } from '../lib/security';
 
+const getSafeRegistrationErrorMessage = (error?: string): string => {
+  const message = (error || '').toLowerCase();
+
+  if (message.includes('already registered') || message.includes('already exists') || message.includes('duplicate key')) {
+    return 'An account with this email address already exists. Please sign in or use password reset.';
+  }
+  if (message.includes('rate limit') || message.includes('too many requests') || message.includes('over_email_send_rate_limit')) {
+    return 'Too many registration or email requests were made. Please wait a little and try again.';
+  }
+  if (message.includes('weak_password') || message.includes('password should be at least')) {
+    return 'Your password does not meet the security requirements. Please choose a stronger password.';
+  }
+  if (message.includes('invalid email') || message.includes('email address is invalid')) {
+    return 'Please check that your email address is valid.';
+  }
+  if (message.includes('failed to fetch') || message.includes('network') || message.includes('timeout')) {
+    return 'We could not reach the registration service. Check your internet connection and try again.';
+  }
+  if (message.includes('registration is unavailable because supabase is not configured')) {
+    return 'Registration is temporarily unavailable. Please contact support.';
+  }
+
+  return 'We could not complete your registration. Please try again. If the problem continues, contact support and mention reference REG-01.';
+};
+
 interface RegisterPageProps {
   redirectUrl?: string;
   onNavigate: (page: string, param?: string) => void;
@@ -121,12 +146,12 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ redirectUrl, onNavig
         showToast('Confirmation email sent. Please check your inbox.', 'info', 6000);
       } else {
         authRateLimiter.recordFailedAttempt();
-        console.warn('Registration failed:', result.error);
-        setErrorMessage('We could not complete your registration. Please check your details and try again.');
+        console.warn('Registration failed. Check the Supabase Auth logs for the underlying cause.');
+        setErrorMessage(getSafeRegistrationErrorMessage(result.error));
       }
     } catch {
       authRateLimiter.recordFailedAttempt();
-      setErrorMessage('An unexpected error occurred during registration. Please try again.');
+      setErrorMessage('We could not reach the registration service. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }

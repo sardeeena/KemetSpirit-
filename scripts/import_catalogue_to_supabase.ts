@@ -27,7 +27,7 @@ export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
 
 // This repository is bound to the KemetSpirit production Supabase project.
 // Never silently inspect or import data from any other Supabase project.
-export const EXPECTED_SUPABASE_PROJECT_REF = 'uvtbtpxtrrmaublrztgv';
+export const EXPECTED_SUPABASE_PROJECT_REF = 'mktrtoctcjyokclpdeui';
 
 /**
  * Validates whether a string is a valid PostgreSQL hexadecimal UUID
