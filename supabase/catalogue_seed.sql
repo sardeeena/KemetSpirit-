@@ -1,5 +1,5 @@
 -- ==============================================================================
--- AWESOME ADVENTURE TOURS - COMPLETE PRODUCTION CATALOGUE SEED
+-- KEMETSPIRIT - COMPLETE PRODUCTION CATALOGUE SEED
 -- ==============================================================================
 -- 1. DESTINATIONS (All 7 Coastal Hubs)
 INSERT INTO public.destinations (id, name, slug, tagline, description, main_image, gallery, distance_from_airport, status, sort_order)
