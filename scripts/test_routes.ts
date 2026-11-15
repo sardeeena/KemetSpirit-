@@ -204,7 +204,8 @@ async function runRouteTests() {
   );
   assert(
     'Empty travel journal is noindex',
-    serverSource.includes('if (posts.length > 0)') &&
+    serverSource.includes('if (posts.length === 0)') &&
+      serverSource.includes('noindex = false;') &&
       serverSource.includes('noindex = true;') &&
       serverSource.includes("app.get('/llms-full.txt'"),
     'Empty blog index is excluded from search and an expanded AI-readable index is served'
