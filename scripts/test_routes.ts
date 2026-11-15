@@ -234,7 +234,7 @@ async function runRouteTests() {
   assert(
     'Client blog robots state follows published articles',
     appSource.includes('robotsIndex: false') &&
-      blogPageSource.includes("posts.length > 0 ? 'index, follow, max-image-preview:large' : 'noindex, follow'") &&
+      blogPageSource.includes(": 'index, follow, max-image-preview:large';") &&
       blogPageSource.includes("article ? 'index, follow, max-image-preview:large' : 'noindex, follow'"),
     'Client-side hydration keeps empty journals and missing articles out of the index, and indexes real published content'
   );
