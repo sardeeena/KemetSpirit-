@@ -156,6 +156,24 @@ async function runRouteTests() {
     assert(`Asset ${file}`, fs.existsSync(fPath), `Found ${file} in dist/`);
   });
 
+  const blogCoverDir = path.join(distPath, 'blog-covers');
+  const blogCoverFiles = fs.existsSync(blogCoverDir)
+    ? fs.readdirSync(blogCoverDir).filter((file) => file.endsWith('.svg'))
+    : [];
+  assert(
+    '50 original editorial blog covers are built',
+    blogCoverFiles.length === 50,
+    `Expected 50 generated SVG covers, found ${blogCoverFiles.length}`
+  );
+  if (blogCoverFiles.length) {
+    const sampleCover = fs.readFileSync(path.join(blogCoverDir, blogCoverFiles[0]), 'utf8');
+    assert(
+      'Generated blog cover is valid SVG markup',
+      sampleCover.includes('<svg') && sampleCover.includes('</svg>') && sampleCover.includes('KemetSpirit'),
+      'Cover assets are self-contained, branded SVG files'
+    );
+  }
+
   // Summary
   console.log('\n================================================================');
 
