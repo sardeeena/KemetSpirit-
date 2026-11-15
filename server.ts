@@ -3971,7 +3971,8 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
     }
   } else if (path === '/blog') {
     pageKind = 'blog-index';
-    noindex = true;
+    // Keep the journal indexable if the public SSR query is unavailable; the browser also hydrates the published list.
+    noindex = false;
     nofollow = false;
     seoEntityType = 'page';
     seoIdentifier = 'blog';
@@ -3986,11 +3987,12 @@ async function renderKemetSpiritPublicHtml(pathname: string, template: string): 
           .order('published_at', { ascending: false }).limit(100);
         if (error) console.warn('[SEO render] Blog index query failed:', error.message);
         const posts = data || [];
-        if (posts.length > 0) {
-          // The journal becomes indexable automatically once it contains published articles.
+        if (posts.length === 0) {
+          noindex = true;
+        } else {
           noindex = false;
-          nofollow = false;
         }
+        nofollow = false;
         const cards = posts.map((post: any) => {
           const slug = typeof post.slug === 'string' ? post.slug.trim() : '';
           const postTitle = seoPlainText(post.title, 160);
