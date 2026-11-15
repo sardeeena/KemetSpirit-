@@ -25,7 +25,7 @@ export const BlogPage: React.FC<{ slug?: string; onNavigate:(path:string)=>void 
     if (typeof document === 'undefined' || loading) return;
     const robots = slug
       ? (article ? 'index, follow, max-image-preview:large' : 'noindex, follow')
-      : (posts.length > 0 ? 'index, follow, max-image-preview:large' : 'noindex, follow');
+      : 'index, follow, max-image-preview:large';
     let node = document.head.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
     if (!node) {
       node = document.createElement('meta');
