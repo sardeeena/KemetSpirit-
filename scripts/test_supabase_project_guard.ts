@@ -48,4 +48,17 @@ assert.equal(wrongProjectPrimary.url, null, 'a valid URL for another project is 
 const invalidFallback = resolveKemetSpiritSupabaseUrl('not-a-url', 'also-not-a-url');
 assert.equal(invalidFallback.url, null, 'invalid primary and fallback URLs are rejected');
 
-console.log('Supabase project guard checks passed.');
+
+const authConfig = fs.readFileSync('supabase/config.toml', 'utf8');
+const authService = fs.readFileSync('src/services/authService.ts', 'utf8');
+assert.match(authConfig, /site_url\s*=\s*"https:\/\/kemetspirit\.com"/, 'Supabase Auth canonical site URL is KemetSpirit');
+assert.match(authConfig, /"https:\/\/kemetspirit\.com\/\*\*"/, 'Supabase Auth allows KemetSpirit production callbacks');
+assert.match(authConfig, /"https:\/\/www\.kemetspirit\.com\/\*\*"/, 'Supabase Auth allows the KemetSpirit www callback host');
+assert.doesNotMatch(authConfig, /mahmoud-crm|awesomeadventure|uvtbtpxtrrmaublrztgv/i, 'Supabase Auth config contains no foreign project or domain');
+assert.match(authService, /getKemetSpiritAuthRedirectUrl/, 'signup, resend and recovery use the KemetSpirit redirect helper');
+assert.match(authService, /'https:\/\/kemetspirit\.com'/, 'server-side callback fallback is the KemetSpirit production domain');
+assert.doesNotMatch(authService, /mahmoud-crm-eosin\.vercel\.app|uvtbtpxtrrmaublrztgv|cyifhjqqvtiguitrziqs/i, 'Auth service contains no foreign deployment or Supabase project');
+assert.doesNotMatch(authService, /data\.session\s*\n\s*\)/, 'an Auth session alone cannot be treated as email verification');
+assert.match(authService, /if \(!user\.email_confirmed_at \|\| !profile\.is_confirmed\) return null/, 'restored sessions require both Auth and profile confirmation');
+
+console.log('Supabase project guard and Auth configuration checks passed.');
