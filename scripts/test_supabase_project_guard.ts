@@ -49,6 +49,9 @@ const invalidFallback = resolveKemetSpiritSupabaseUrl('not-a-url', 'also-not-a-u
 assert.equal(invalidFallback.url, null, 'invalid primary and fallback URLs are rejected');
 
 
+const envExample = fs.readFileSync('.env.example', 'utf8');
+assert.match(envExample, /^SUPABASE_URL=https:\/\/mktrtoctcjyokclpdeui\.supabase\.co$/m, 'server environment template points to KemetSpirit Supabase');
+assert.match(envExample, /^VITE_SUPABASE_URL=https:\/\/mktrtoctcjyokclpdeui\.supabase\.co$/m, 'browser environment template points to KemetSpirit Supabase');
 const authConfig = fs.readFileSync('supabase/config.toml', 'utf8');
 const authService = fs.readFileSync('src/services/authService.ts', 'utf8');
 assert.match(authConfig, /site_url\s*=\s*"https:\/\/kemetspirit\.com"/, 'Supabase Auth canonical site URL is KemetSpirit');
