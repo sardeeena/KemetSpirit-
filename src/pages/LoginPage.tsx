@@ -62,117 +62,145 @@ export const LoginPage: React.FC<LoginPageProps> = ({ redirectUrl, onNavigate })
     }
   }, [user, redirectUrl, onNavigate]);
 
-  // Check URL parameters for confirmation flags, PKCE codes, OTP tokens, or prefilled email
+  // Supabase is configured with detectSessionInUrl=true, so the SDK owns PKCE/hash
+  // callback processing. Never exchange the same PKCE code a second time here.
   useEffect(() => {
+    let cancelled = false;
+
+    const showConfirmationFailure = (message: string) => {
+      if (cancelled) return;
+      setConfirmedNotice(false);
+      setRequiresConfirmation(true);
+      setErrorMessage(message);
+    };
+
+    const finishConfirmedSession = async (expectedEmail?: string | null) => {
+      if (!isSupabaseConfigured()) {
+        showConfirmationFailure('Email confirmation is temporarily unavailable. Please contact support.');
+        return false;
+      }
+
+      // getSession waits for the client's automatic URL callback processing;
+      // getUser then validates the session against Supabase Auth.
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        showConfirmationFailure('We could not complete the confirmation session. Please open the newest email link again.');
+        return false;
+      }
+
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const confirmedUser = !userError ? userData.user : null;
+      const sessionUser = sessionData.session?.user;
+      const authUser = confirmedUser || sessionUser;
+
+      if (!authUser || !authUser.email_confirmed_at) {
+        showConfirmationFailure('Supabase has not confirmed this email yet. Please use the newest confirmation email link.');
+        return false;
+      }
+
+      const actualEmail = authUser.email?.trim().toLowerCase() || '';
+      const requestedEmail = expectedEmail?.trim().toLowerCase();
+      if (!actualEmail || (requestedEmail && actualEmail !== requestedEmail)) {
+        showConfirmationFailure('The confirmation link belongs to a different email address. Please sign in with the correct account.');
+        return false;
+      }
+
+      const result = await confirmEmail(actualEmail);
+      if (!result.success) {
+        showConfirmationFailure(result.error || 'Your email was verified by Supabase, but the KemetSpirit profile is not yet synchronized. Please try again shortly.');
+        return false;
+      }
+
+      if (!cancelled) {
+        setEmail(actualEmail);
+        setConfirmedNotice(true);
+        setRequiresConfirmation(false);
+        setErrorMessage(null);
+        showToast('Email verified successfully. You can now sign in.', 'success');
+      }
+      return true;
+    };
+
     const handleUrlConfirmation = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const hash = window.location.hash;
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         const code = params.get('code');
-        const tokenHash = params.get('token_hash');
-        const otpType = params.get('type') || 'signup';
+        const tokenHash = params.get('token_hash') || hashParams.get('token_hash');
+        const otpType = params.get('type') || hashParams.get('type') || 'signup';
         const isConfirmedParam = params.get('confirmed') === 'true' || params.get('confirm') === 'true';
-        const emailParam = params.get('email');
+        const emailParam = params.get('email') || hashParams.get('email');
         const tokenParam = params.get('token');
         const errorDesc = params.get('error_description') || params.get('error');
 
-        if (emailParam) {
-          setEmail(emailParam);
-        }
+        if (emailParam && !cancelled) setEmail(emailParam);
 
-        // Handle error param if token was already used or expired
         if (errorDesc) {
-          const decoded = decodeURIComponent(errorDesc.replace(/\+/g, ' '));
+          const decoded = decodeURIComponent(errorDesc.replace(/\\+/g, ' '));
           const lower = decoded.toLowerCase();
           if (lower.includes('already confirmed') || lower.includes('already verified')) {
-            setConfirmedNotice(true);
-            setRequiresConfirmation(false);
-            setErrorMessage(null);
-            if (emailParam) {
-              await confirmEmail(emailParam);
-            }
+            const ok = await finishConfirmedSession(emailParam);
+            if (!ok) showConfirmationFailure(decoded);
             return;
           }
-          setErrorMessage(decoded);
+          showConfirmationFailure(decoded);
           return;
         }
 
-        // 1. Handle PKCE code exchange if present
-        if (code && isSupabaseConfigured()) {
-          try {
-            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-            if (!error && data?.user) {
-              const authedEmail = data.user.email || emailParam || '';
-              if (authedEmail) {
-                setEmail(authedEmail);
-                await confirmEmail(authedEmail);
-              }
-              setConfirmedNotice(true);
-              setRequiresConfirmation(false);
-              setErrorMessage(null);
-              showToast('Email verified successfully! You are now signed in.', 'success');
-
-              // Clean URL query params to keep clean address bar
-              const newUrl = window.location.pathname + (redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : '');
-              window.history.replaceState({}, '', newUrl);
-              return;
-            }
-          } catch (err) {
-            console.warn('PKCE code exchange error:', err);
-          }
-        }
-
-        // 2. Handle token_hash verification if present
+        // Explicit token_hash links are verified once here. PKCE code links are
+        // processed automatically by Supabase because detectSessionInUrl=true.
         if (tokenHash && isSupabaseConfigured()) {
-          try {
-            const { data, error } = await supabase.auth.verifyOtp({
-              token_hash: tokenHash,
-              type: (otpType as any) || 'signup',
-            });
-            if (!error && data?.user) {
-              const authedEmail = data.user.email || emailParam || '';
-              if (authedEmail) {
-                setEmail(authedEmail);
-                await confirmEmail(authedEmail);
-              }
-              setConfirmedNotice(true);
-              setRequiresConfirmation(false);
-              setErrorMessage(null);
-              showToast('Email verified successfully! You are now signed in.', 'success');
-
-              const newUrl = window.location.pathname + (redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : '');
-              window.history.replaceState({}, '', newUrl);
-              return;
-            }
-          } catch (err) {
-            console.warn('Verify OTP error:', err);
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: otpType as any,
+          });
+          if (error || !data.user) {
+            showConfirmationFailure(error ? (error.message || 'This confirmation link is invalid or expired. Please request a new one.') : 'Supabase could not verify this confirmation link.');
+            return;
           }
+          await finishConfirmedSession(data.user.email || emailParam);
+          return;
         }
 
-        // 3. Handle confirmed=true flag or direct token from email link
-        if (isConfirmedParam || tokenParam) {
-          const targetEmail = emailParam || email.trim();
-          if (targetEmail) {
-            await confirmEmail(targetEmail, tokenParam || undefined);
-          }
-          setConfirmedNotice(true);
-          setRequiresConfirmation(false);
-          setErrorMessage(null);
+        if (code && isSupabaseConfigured()) {
+          // Do not call exchangeCodeForSession here: the client SDK already
+          // consumes this code during initialization. Wait for that operation.
+          await finishConfirmedSession(emailParam);
+          return;
         }
 
-        // 4. Handle implicit hash containing access_token
-        if (hash && (hash.includes('access_token') || hash.includes('type=signup'))) {
-          setConfirmedNotice(true);
-          setRequiresConfirmation(false);
-          setErrorMessage(null);
+        if (tokenParam && emailParam) {
+          const { success, error } = await confirmEmail(emailParam, tokenParam);
+          if (!success) {
+            showConfirmationFailure(error || 'This confirmation token is invalid or expired.');
+            return;
+          }
+          if (!cancelled) {
+            setConfirmedNotice(true);
+            setRequiresConfirmation(false);
+            setErrorMessage(null);
+            showToast('Email verified successfully. You can now sign in.', 'success');
+          }
+          return;
+        }
+
+        // The redirect flag is only a hint, never proof of verification.
+        // Likewise, an access_token in the URL hash is not accepted until
+        // Supabase Auth and the protected profile both confirm the account.
+        const hasAuthHash = hashParams.has('access_token') || hashParams.get('type') === 'signup';
+        if (isConfirmedParam || hasAuthHash) {
+          await finishConfirmedSession(emailParam);
         }
       } catch (err) {
-        console.warn('URL confirmation check error:', err);
+        showConfirmationFailure(err instanceof Error ? err.message : 'We could not verify this email. Please open the newest confirmation email link again.');
       }
     };
 
-    handleUrlConfirmation();
-  }, [confirmEmail, email, redirectUrl, showToast]);
+    void handleUrlConfirmation();
+    return () => {
+      cancelled = true;
+    };
+  }, [confirmEmail, redirectUrl, showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
