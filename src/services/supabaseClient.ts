@@ -235,9 +235,21 @@ export const formatSupabaseError = (error: unknown): string => {
 
   if (typeof error === 'string') return error;
 
-  const err = error as { code?: string; message?: string; details?: string };
+  const err = error as { code?: string; message?: string; details?: string; status?: number };
   const message = err.message || '';
   const code = err.code || '';
+  const normalizedMessage = message.toLowerCase();
+
+  // Auth email delivery failures must be distinguished from application errors.
+  if (code === 'over_email_send_rate_limit' || normalizedMessage.includes('over_email_send_rate_limit') || normalizedMessage.includes('email rate limit exceeded')) {
+    return 'Supabase has temporarily reached its hourly email limit. Do not keep retrying registration; wait for the limit to reset or configure custom SMTP for KemetSpirit.';
+  }
+  if (code === 'email_address_not_authorized' || normalizedMessage.includes('email_address_not_authorized')) {
+    return 'Supabase built-in email can only deliver to authorized team addresses. Configure custom SMTP for KemetSpirit before public registration.';
+  }
+  if (code === 'user_not_found' || err.status === 403 && normalizedMessage.includes('user from sub claim')) {
+    return 'Your previous KemetSpirit session is no longer valid. Please refresh the page and sign in again.';
+  }
 
   // Missing table in schema cache (PGRST205)
   if (code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache')) {

@@ -293,33 +293,22 @@ export async function signUpUser(data: {
         return { user: null, error: formatSupabaseError(sbError) };
       }
 
-      if (sbData.user) {
-        newUser.id = sbData.user.id;
-        // Optionally insert profile as unconfirmed
-        try {
-          await supabase.from('profiles').upsert({
-            id: sbData.user.id,
-            email: cleanEmail,
-            full_name: data.fullName.trim(),
-            phone: data.phoneNumber || null,
-            country: data.country || null,
-            country_code: data.countryCode || null,
-            role: 'customer',
-            is_confirmed: false,
-          });
-        } catch {
-          // ignore profile sync failure
-        }
-
-        // Supabase sends email confirmation link.
-        // User is NOT logged in and account is pending confirmation!
-        void recordVisitorEvent({ event_name: 'auth_sign_up', page_path: '/register', event_data: { outcome: 'confirmation_required' } });
-        return {
-          user: null,
-          requiresEmailConfirmation: true,
-          email: cleanEmail,
-        };
+      if (!sbData.user) {
+        // Never fall through to the local demo registry when production Auth
+        // returned an empty response. That can make the UI claim signup worked
+        // even though no Supabase account or confirmation email exists.
+        return { user: null, error: 'KemetSpirit Auth did not create an account. Please try again later.' };
       }
+
+      // The trusted on_auth_user_created trigger creates the customer profile.
+      // Browser-side profile upserts are intentionally avoided: the public
+      // signup client must not write protected role/confirmation fields.
+      void recordVisitorEvent({ event_name: 'auth_sign_up', page_path: '/register', event_data: { outcome: 'confirmation_required' } });
+      return {
+        user: null,
+        requiresEmailConfirmation: true,
+        email: cleanEmail,
+      };
     } catch (err) {
       return { user: null, error: formatSupabaseError(err) };
     }
@@ -594,6 +583,19 @@ export async function getCurrentAdminUser(): Promise<AppUser | null> {
   try {
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) {
+      // A deleted Auth user leaves a still-signed JWT in browser storage until
+      // it is explicitly cleared. Supabase returns user_not_found (403) for
+      // that stale token; remove the local session so every page load does not
+      // keep replaying it against the Auth API.
+      const authCode = (authErr as { code?: string } | null)?.code;
+      const authStatus = (authErr as { status?: number } | null)?.status;
+      if (authCode === 'user_not_found' || authStatus === 403) {
+        try {
+          await supabase.auth.signOut({ scope: 'local' });
+        } catch {
+          // Continue clearing app-owned cached identity even if SDK cleanup fails.
+        }
+      }
       localStorage.removeItem(LOCAL_ACTIVE_USER_KEY);
       localStorage.removeItem('rse_demo_admin');
       return null;
