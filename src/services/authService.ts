@@ -379,7 +379,7 @@ export async function resendConfirmationEmail(
 
   if (isSupabaseConfigured()) {
     try {
-      const redirectUrl = `${window.location.origin}/login?confirmed=true&email=${encodeURIComponent(cleanEmail)}`;
+      const redirectUrl = getKemetSpiritAuthRedirectUrl('/login', cleanEmail);
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: cleanEmail,
