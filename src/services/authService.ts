@@ -35,6 +35,22 @@ interface StoredLocalUser {
 
 export const LOCAL_USERS_KEY = 'rse_registered_users';
 export const LOCAL_ACTIVE_USER_KEY = 'rse_active_user';
+/**
+ * All production Auth callbacks must return to KemetSpirit. Local development
+ * may use its own origin so local Supabase testing remains isolated.
+ */
+export function getKemetSpiritAuthRedirectUrl(path: string, email?: string): string {
+  const hostname = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '';
+  const isLocalDevelopment = hostname === 'localhost' || hostname === '127.0.0.1';
+  const origin = isLocalDevelopment ? window.location.origin : 'https://kemetspirit.com';
+  const url = new URL(path, origin);
+  if (email) {
+    url.searchParams.set('confirmed', 'true');
+    url.searchParams.set('email', email.trim().toLowerCase());
+  }
+  return url.toString();
+}
+
 
 export function getStoredLocalUsers(): StoredLocalUser[] {
   try {
@@ -96,13 +112,13 @@ export async function signInUser(
 
       if (!error && data.user) {
         // Check if account email is verified
-        const isEmailConfirmed = Boolean(
-          data.user.email_confirmed_at ||
-          (data.user as any)?.confirmed_at ||
-          data.session
-        );
+        // A session is not proof of email verification: projects may disable
+        // confirmation temporarily, and Supabase can still issue a session.
+        // Only Auth's verified timestamp is authoritative.
+        const isEmailConfirmed = Boolean(data.user.email_confirmed_at || (data.user as any)?.confirmed_at);
 
         if (!isEmailConfirmed) {
+          await supabase.auth.signOut();
           void recordVisitorEvent({ event_name: 'auth_sign_in_failed', page_path: '/login', event_data: { outcome: 'email_unconfirmed' } });
           return {
             user: null,
@@ -131,38 +147,19 @@ export async function signInUser(
             return { user: null, error: 'We could not verify your account permissions. Please try signing in again.' };
           }
 
-          if (profile) {
-            if (profile.role) userRole = profile.role as UserRole;
-            if (profile.full_name) profileFullName = profile.full_name;
-            if (profile.phone) profilePhone = profile.phone;
-            if (profile.avatar_url) profileAvatar = profile.avatar_url;
-            if (profile.country) profileCountry = profile.country;
-
-            // Ensure profile is marked confirmed
-            if (!profile.is_confirmed) {
-              await supabase.from('profiles').update({ is_confirmed: true }).eq('id', data.user.id);
-            }
-          } else {
-            // Self-healing: if the user account existed in auth.users without a profiles row, create it
-            const newProfile = {
-              id: data.user.id,
-              email: cleanEmail,
-              full_name: profileFullName,
-              role: 'customer',
-              phone: profilePhone || null,
-              country: profileCountry || null,
-              is_confirmed: true,
-            };
-            const { data: createdProfile } = await supabase
-              .from('profiles')
-              .upsert(newProfile)
-              .select('*')
-              .maybeSingle();
-
-            if (createdProfile?.role) {
-              userRole = createdProfile.role as UserRole;
-            }
+          if (!profile) {
+            await supabase.auth.signOut();
+            return { user: null, error: 'Your account profile is not ready yet. Please contact KemetSpirit support.' };
           }
+          if (!profile.is_confirmed) {
+            await supabase.auth.signOut();
+            return { user: null, error: 'Your email is verified, but your KemetSpirit profile confirmation has not synchronized yet. Please try again shortly or contact support.' };
+          }
+          if (profile.role) userRole = profile.role as UserRole;
+          if (profile.full_name) profileFullName = profile.full_name;
+          if (profile.phone) profilePhone = profile.phone;
+          if (profile.avatar_url) profileAvatar = profile.avatar_url;
+          if (profile.country) profileCountry = profile.country;
         } catch (err) {
           console.warn('Profile verification failed during signInUser:', err);
           await supabase.auth.signOut();
@@ -276,7 +273,7 @@ export async function signUpUser(data: {
   // 1. Try Supabase if configured
   if (isSupabaseConfigured()) {
     try {
-      const redirectUrl = `${window.location.origin}/login?confirmed=true&email=${encodeURIComponent(cleanEmail)}`;
+      const redirectUrl = getKemetSpiritAuthRedirectUrl('/login', cleanEmail);
       const { data: sbData, error: sbError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: data.password,
@@ -469,17 +466,19 @@ export async function confirmUserEmail(
       confirmedUserId = data.user.id;
     }
 
+    // The database's trusted Auth trigger synchronizes profiles.is_confirmed
+    // when auth.users.email_confirmed_at changes. Browser clients must not
+    // write this protected server-managed field themselves.
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .update({ is_confirmed: true })
+      .select('id, is_confirmed')
       .eq('id', confirmedUserId)
-      .select('id')
       .maybeSingle();
 
-    if (profileError || !profile) {
+    if (profileError || !profile?.is_confirmed) {
       return {
         success: false,
-        error: profileError ? formatSupabaseError(profileError) : 'The account was confirmed, but its profile could not be synchronized.',
+        error: profileError ? formatSupabaseError(profileError) : 'Supabase verified the email, but the KemetSpirit profile confirmation is not synchronized yet. Please try again shortly.',
       };
     }
 
@@ -503,12 +502,10 @@ export async function resetPasswordRequest(
 
   if (isSupabaseConfigured()) {
     try {
-      const redirectOrigin = typeof window !== 'undefined' && window.location?.origin
-        ? window.location.origin
-        : 'https://mahmoud-crm-eosin.vercel.app';
+      const redirectTo = getKemetSpiritAuthRedirectUrl('/reset-password');
 
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-        redirectTo: `${redirectOrigin}/reset-password`,
+        redirectTo,
       });
       if (error) {
         return { success: false, error: formatSupabaseError(error) };
