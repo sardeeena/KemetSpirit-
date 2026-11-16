@@ -624,9 +624,9 @@ export async function getCurrentAdminUser(): Promise<AppUser | null> {
     const permissions = Array.isArray(accessContext.permissions)
       ? accessContext.permissions.filter((permission: unknown): permission is string => typeof permission === 'string')
       : [];
-    const hasStaffRole = roles.some((role: string) => role !== 'customer' && role !== 'guide');
-    if (hasStaffRole && !user.email_confirmed_at) return null;
-    if (!profile.is_confirmed && !user.email_confirmed_at) return null;
+    // Every account must be confirmed by Supabase Auth. A profile flag or
+    // cached session alone must never substitute for the Auth confirmation stamp.
+    if (!user.email_confirmed_at || !profile.is_confirmed) return null;
 
     const authedUser: AppUser = {
       id: user.id,
@@ -663,11 +663,11 @@ export async function verifyAdminAccess(): Promise<boolean> {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, is_confirmed')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (profileError || !profile) {
+    if (profileError || !profile || !profile.is_confirmed || !user.email_confirmed_at) {
       // Never fall back to potentially stale token claims when the live profile cannot be verified.
       return false;
     }
