@@ -31,8 +31,14 @@ const getSafeRegistrationErrorMessage = (error?: string): string => {
   if (message.includes('already registered') || message.includes('already exists') || message.includes('duplicate key')) {
     return 'An account with this email address already exists. Please sign in or use password reset.';
   }
-  if (message.includes('rate limit') || message.includes('too many requests') || message.includes('over_email_send_rate_limit')) {
-    return 'Too many registration or email requests were made. Please wait a little and try again.';
+  if (message.includes('over_email_send_rate_limit') || message.includes('email rate limit exceeded') || message.includes('rate limit')) {
+    return 'KemetSpirit email delivery has reached Supabase’s hourly limit. Please do not retry repeatedly. Registration can resume after the limit resets, or once custom SMTP is configured.';
+  }
+  if (message.includes('email_address_not_authorized')) {
+    return 'KemetSpirit email delivery is not enabled for this recipient by Supabase’s built-in mail service. Custom SMTP must be configured before public registration can send confirmation emails.';
+  }
+  if (message.includes('user_not_found') || message.includes('user from sub claim')) {
+    return 'Your old KemetSpirit session is no longer valid. Refresh this page, then try again.';
   }
   if (message.includes('weak_password') || message.includes('password should be at least')) {
     return 'Your password does not meet the security requirements. Please choose a stronger password.';
