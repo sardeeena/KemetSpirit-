@@ -32,8 +32,13 @@ enabled = true
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["http://localhost:3000"]
+site_url = "https://kemetspirit.com"
+additional_redirect_urls = [
+  "https://kemetspirit.com/**",
+  "https://www.kemetspirit.com/**",
+  "http://localhost:3000/**",
+  "http://127.0.0.1:3000/**",
+]
 jwt_expiry = 3600
 
 [analytics]
