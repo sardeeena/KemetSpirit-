@@ -54,6 +54,7 @@ assert.match(envExample, /^SUPABASE_URL=https:\/\/mktrtoctcjyokclpdeui\.supabase
 assert.match(envExample, /^VITE_SUPABASE_URL=https:\/\/mktrtoctcjyokclpdeui\.supabase\.co$/m, 'browser environment template points to KemetSpirit Supabase');
 const authConfig = fs.readFileSync('supabase/config.toml', 'utf8');
 const authService = fs.readFileSync('src/services/authService.ts', 'utf8');
+const loginPage = fs.readFileSync('src/pages/LoginPage.tsx', 'utf8');
 assert.match(authConfig, /site_url\s*=\s*"https:\/\/kemetspirit\.com"/, 'Supabase Auth canonical site URL is KemetSpirit');
 assert.match(authConfig, /"https:\/\/kemetspirit\.com\/\*\*"/, 'Supabase Auth allows KemetSpirit production callbacks');
 assert.match(authConfig, /"https:\/\/www\.kemetspirit\.com\/\*\*"/, 'Supabase Auth allows the KemetSpirit www callback host');
@@ -63,5 +64,11 @@ assert.match(authService, /'https:\/\/kemetspirit\.com'/, 'server-side callback 
 assert.doesNotMatch(authService, /mahmoud-crm-eosin\.vercel\.app|uvtbtpxtrrmaublrztgv|cyifhjqqvtiguitrziqs/i, 'Auth service contains no foreign deployment or Supabase project');
 assert.doesNotMatch(authService, /data\.session\s*\n\s*\)/, 'an Auth session alone cannot be treated as email verification');
 assert.match(authService, /if \(!user\.email_confirmed_at \|\| !profile\.is_confirmed\) return null/, 'restored sessions require both Auth and profile confirmation');
+assert.match(loginPage, /detectSessionInUrl=true/, 'the callback handler documents that the Supabase SDK owns automatic callback processing');
+assert.doesNotMatch(loginPage, /exchangeCodeForSession\(/, 'the callback must not exchange the same PKCE code a second time');
+assert.match(loginPage, /finishConfirmedSession/, 'all callback variants use one authoritative confirmation verifier');
+assert.match(loginPage, /if \(!result\.success\)/, 'the UI must not claim success when profile confirmation fails');
+assert.match(loginPage, /email_confirmed_at/, 'callback success requires Supabase Auth email verification');
+assert.doesNotMatch(loginPage, /if \(hash && \(hash\.includes\('access_token'\)[\s\S]{0,180}setConfirmedNotice\(true\)/, 'an unverified URL hash cannot display a successful confirmation');
 
 console.log('Supabase project guard and Auth configuration checks passed.');
